@@ -1,0 +1,59 @@
+/* Stages.css - השלד הכללי */
+.stage-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: 'MedievalSharp', cursive;
+  color: white;
+}
+
+.setup-card {
+  padding: 2.5vw;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.setup-card h2 { font-size: 2.5vw; margin-bottom: 1vw; }
+
+.setup-card input {
+  font-size: 1.5vw;
+  padding: 0.7vw;
+  margin: 1vw 0;
+  border-radius: 5px;
+  width: 250px;
+  font-family: inherit;
+}
+
+.start-btn {
+  padding: 0.8vw 2vw;
+  font-size: 1.4vw;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-family: inherit;
+}
+
+.countdown-overlay {
+  font-size: 12vw;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.maze-wrapper {
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  background: #000;
+}
+
+.timer-display {
+  font-size: 2.5vw;
+  margin-bottom: 15px;
+}

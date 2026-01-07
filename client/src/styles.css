@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap');
+
+:root {
+  --parchment: #f2e2c4;
+  --dark-wood: #4a2c10;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  background-color: #1a1a1a;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'MedievalSharp', cursive;
+  overflow: hidden;
+}
+
+/* המיכל ששומר על יחס 16:9 - קריטי לדיוק המיקומים */
+.game-viewport {
+  position: relative;
+  width: 100vw;
+  height: 56.25vw; /* 16:9 Ratio */
+  max-width: 177.78vh;
+  max-height: 100vh;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
+
+/* תיקון כותרת: הגדלה ומרכוז בתוך הקלף */
+.title-container {
+  position: absolute;
+  top: 8%;      /* ירידה קלה למרכז הקלף */
+  left: 8.1%;   /* מיקום אופקי */
+  width: 19%;   /* רוחב מותאם לקלף */
+  text-align: center;
+  transform: rotate(-1.5deg); /* זווית מותאמת לגרפיקה */
+  pointer-events: none;
+}
+
+.title-container h1 {
+  font-size: 2.6vw; /* הגדלת הכותרת */
+  margin: 0;
+  color: #3d2511;
+  line-height: 1.1;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.title-container p {
+  font-size: 1.3vw; /* הגדלת תת הכותרת */
+  margin: 10px 0 0 0;
+  color: #000000;
+  font-weight: bold;
+}
+
+/* כפתורי השלבים - מיקומים מכויילים לאבנים */
+.stone {
+  position: absolute;
+  width: 9vw;
+  height: 6vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.stone-label {
+  color: #fff;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 0.4vw 1.2vw;
+  border-radius: 20px;
+  font-size: 1vw;
+  border: 1.5px solid gold;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.stone:hover .stone-label {
+  transform: scale(1.2);
+  background: gold;
+  color: #000;
+}
+
+.stone.locked {
+  cursor: not-allowed;
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
+/* מיקומים מדוייקים לפי האבנים בתמונה */
+.stone-1 { top: 64%; left: 46.5%; } /* אבן תחתונה */
+.stone-2 { top: 41%; left: 42.5%; } /* אבן אמצעית */
+.stone-3 { top: 26%; left: 33.5%; } /* אבן עליונה */
+
+/* לוח תוצאות */
+.leaderboard-wrapper {
+  position: absolute;
+  bottom: 3%;
+  right: 1%;
+  background: var(--parchment);
+  padding: 1vw;
+  border: 0.3vw solid var(--dark-wood);
+  border-radius: 8px;
+  width: 18vw;
+  box-shadow: 4px 4px 15px rgba(0,0,0,0.5);
+}
+
+.leaderboard-wrapper h2 {
+  margin: 0 0 0.5vw 0;
+  font-size: 1.4vw;
+  color: var(--dark-wood);
+  text-align: center;
+  border-bottom: 2px solid var(--dark-wood);
+}
+
+.leaderboard-table {
+  width: 100%;
+  font-size: 1.1vw;
+  border-collapse: collapse;
+}
+
+.leaderboard-table td {
+  padding: 0.3vw 0;
+  color: #2b1d0e;
+  font-weight: bold;
+}

@@ -1,0 +1,64 @@
+/* Stage3.css - THE 2026 LAVA CORE */
+
+.stage3-theme.stage-container {
+  background: linear-gradient(135deg, #0f0000 0%, #3d0000 50%, #000000 100%);
+  overflow: hidden;
+}
+
+.stage3-theme .setup-card {
+  background: rgba(255, 69, 0, 0.05);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  border-radius: 24px;
+  padding: 3rem;
+  box-shadow: 0 0 50px rgba(255, 0, 0, 0.2);
+}
+
+.stage3-theme h2 {
+  background: linear-gradient(to bottom, #ff4500, #ff0000);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.stage3-theme input {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid #ff4500;
+  color: #ff8c00;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.stage3-theme input:focus {
+  box-shadow: 0 0 15px rgba(255, 69, 0, 0.5);
+  outline: none;
+}
+
+.stage3-theme .start-btn {
+  background: linear-gradient(45deg, #ff4500, #ff0000);
+  border-radius: 12px;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: transform 0.2s;
+}
+
+.stage3-theme .start-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px #ff4500;
+}
+
+.neon-text {
+  font-family: 'Syncopate', sans-serif;
+  color: #ff4500;
+  text-shadow: 0 0 10px #ff0000;
+}
+
+.modern-border {
+  border: 2px solid rgba(255, 69, 0, 0.5);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(0,0,0,0.8);
+}

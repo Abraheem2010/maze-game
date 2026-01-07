@@ -1,0 +1,29 @@
+/* Stage1.css - העיצוב הספציפי לשלב 1 */
+.stage1-theme.stage-container {
+  background: #1a1a1a;
+}
+
+.stage1-theme .setup-card {
+  background: #f2e2c4; /* Parchment */
+  border: 0.4vw solid #4a2c10; /* Dark wood */
+  color: #3d2511;
+}
+
+.stage1-theme .setup-card input {
+  border: 2px solid #4a2c10;
+}
+
+.stage1-theme .start-btn {
+  background: #4a2c10;
+  color: #f2e2c4;
+}
+
+.stage1-theme .countdown-overlay,
+.stage1-theme .timer-display {
+  color: gold;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+}
+
+.stage1-theme .maze-wrapper {
+  border: 5px solid gold;
+}

@@ -1,0 +1,39 @@
+/* Stage2.css - Identity of Stage 2 */
+
+.stage2-theme.stage-container {
+  background: radial-gradient(circle, #0f172a 0%, #020617 100%); /* כחול עמוק מאוד */
+}
+
+.stage2-theme .setup-card {
+  background: #1e293b; /* כחול מתכתי */
+  border: 0.4vw solid #38bdf8; /* טורקיז זוהר */
+  color: #f0f9ff;
+  box-shadow: 0 0 30px rgba(56, 189, 248, 0.2);
+}
+
+.stage2-theme .setup-card input {
+  border: 2px solid #38bdf8;
+  background: #0f172a;
+  color: white;
+}
+
+.stage2-theme .start-btn {
+  background: #38bdf8;
+  color: #020617;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+}
+
+.stage2-theme .start-btn:hover {
+  background: #7dd3fc;
+}
+
+.stage2-theme .countdown-overlay,
+.stage2-theme .timer-display {
+  color: #38bdf8;
+  text-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
+}
+
+.stage2-theme .maze-wrapper {
+  border: 5px solid #38bdf8;
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);
+}
