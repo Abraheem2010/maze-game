@@ -9,14 +9,17 @@ const db = new sqlite3.Database('./maze_records.db');
 app.use(cors());
 app.use(express.json());
 
-// מגיש את קבצי המשחק
-app.use(express.static(path.join(__dirname, '..', 'client', 'public')));
-
-// יצירת טבלה
+/* =======================
+   DATABASE
+======================= */
 db.run("CREATE TABLE IF NOT EXISTS scores (stage, name, time)");
 
+/* =======================
+   API ROUTES
+======================= */
 app.post('/api/score', (req, res) => {
   const { stage, name, time } = req.body;
+
   db.run(
     "INSERT INTO scores (stage, name, time) VALUES (?, ?, ?)",
     [stage, name, time],
@@ -34,10 +37,23 @@ app.get('/api/records', (req, res) => {
   });
 });
 
-// פותח את המשחק בדיפולט
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'client', 'public', 'index.html'));
+/* =======================
+   SERVE REACT BUILD
+======================= */
+const clientBuildPath = path.join(__dirname, '..', 'client', 'build');
+
+// מגיש את קבצי ה־React
+app.use(express.static(clientBuildPath));
+
+// כל ראוט שלא API → React
+app.get('*', (req, res) => {
+  res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 
+/* =======================
+   START SERVER
+======================= */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on", PORT));
+app.listen(PORT, () => {
+  console.log("Server running on", PORT);
+});
