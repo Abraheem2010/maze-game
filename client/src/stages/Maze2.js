@@ -81,7 +81,8 @@ function Maze2({ onWin, playerName }) {
         setPlayer({ x, y });
         if (x === exit.x && y === exit.y) {
           setIsWon(true);
-          setTimeout(() => onWin(parseFloat(elapsed)), 3000);
+          onWin(parseFloat(elapsed));
+
         }
       }
     };
