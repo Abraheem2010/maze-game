@@ -36,12 +36,13 @@ function Stage3() {
   };
 
   const handleWin = async (time) => {
-    // 1) מציגים פופאפ מיד
     const t = parseFloat(time);
+
+    // 1) פופאפ מיד
     setFinalTime(Number.isFinite(t) ? t : time);
     setShowWinPopup(true);
 
-    // 2) שולחים לשרת ברקע (Render)
+    // 2) שליחה לשרת
     try {
       const base = API || "";
       await fetch(`${base}/api/score`, {
@@ -56,7 +57,7 @@ function Stage3() {
     } catch (err) {
       console.error("Save error:", err);
     } finally {
-      // 3) ניווט אחרי 3 שניות בכל מקרה
+      // 3) חזרה למפה אחרי 3 שניות
       setTimeout(() => navigate('/'), 3000);
     }
   };
@@ -66,14 +67,25 @@ function Stage3() {
       {gameState === 'INPUT' && (
         <div className="setup-card">
           <h2>Stage 3: The Lava Core</h2>
+
           <input
             type="text"
             placeholder="Adventurer Name..."
             value={playerName}
             onChange={(e) => setPlayerName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleStart();
+              }
+            }}
           />
+
           <br />
-          <button className="start-btn" onClick={handleStart}>Face the Heat</button>
+
+          <button className="start-btn" onClick={handleStart}>
+            Face the Heat
+          </button>
         </div>
       )}
 
