@@ -4,34 +4,84 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const db = new sqlite3.Database('./maze_records.db');
-
 app.use(cors());
 app.use(express.json());
 
+const db = new sqlite3.Database('./maze_records.db');
+
 /* =======================
-   DATABASE
+   DATABASE (BEST PER STAGE)
 ======================= */
-db.run("CREATE TABLE IF NOT EXISTS scores (stage, name, time)");
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS records (
+      stage INTEGER PRIMARY KEY,
+      name TEXT NOT NULL,
+      time REAL NOT NULL
+    )
+  `);
+});
 
 /* =======================
    API ROUTES
 ======================= */
-app.post('/api/score', (req, res) => {
-  const { stage, name, time } = req.body;
 
-  db.run(
-    "INSERT INTO scores (stage, name, time) VALUES (?, ?, ?)",
-    [stage, name, time],
-    (err) => {
+// עדכון/יצירה של שיא
+app.post('/api/score', (req, res) => {
+  const stage = Number(req.body.stage);
+  const name = String(req.body.name || '').trim();
+  const time = Number(req.body.time);
+
+  if (!Number.isFinite(stage) || stage <= 0) {
+    return res.status(400).json({ error: 'Invalid stage' });
+  }
+  if (name.length < 2) {
+    return res.status(400).json({ error: 'Invalid name' });
+  }
+  if (!Number.isFinite(time) || time <= 0) {
+    return res.status(400).json({ error: 'Invalid time' });
+  }
+
+  // מביאים שיא קיים לשלב
+  db.get(
+    'SELECT time FROM records WHERE stage = ?',
+    [stage],
+    (err, row) => {
       if (err) return res.status(500).json({ error: err.message });
-      res.json({ message: "Saved" });
+
+      // אין שיא עדיין → מכניסים
+      if (!row) {
+        db.run(
+          'INSERT INTO records (stage, name, time) VALUES (?, ?, ?)',
+          [stage, name, time],
+          (err2) => {
+            if (err2) return res.status(500).json({ error: err2.message });
+            return res.json({ updated: true, reason: 'first_record' });
+          }
+        );
+        return;
+      }
+
+      // יש שיא: מעדכנים רק אם הזמן חדש קטן יותר (שיא טוב יותר)
+      if (time < row.time) {
+        db.run(
+          'UPDATE records SET name = ?, time = ? WHERE stage = ?',
+          [name, time, stage],
+          (err3) => {
+            if (err3) return res.status(500).json({ error: err3.message });
+            return res.json({ updated: true, reason: 'new_record' });
+          }
+        );
+      } else {
+        return res.json({ updated: false, reason: 'not_better' });
+      }
     }
   );
 });
 
+// מחזירים את השיאים (רשומה אחת לכל stage)
 app.get('/api/records', (req, res) => {
-  db.all("SELECT * FROM scores", [], (err, rows) => {
+  db.all('SELECT stage, name, time FROM records ORDER BY stage ASC', [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
@@ -43,9 +93,8 @@ app.get('/api/records', (req, res) => {
 const clientBuildPath = path.join(__dirname, '..', 'client', 'build');
 app.use(express.static(clientBuildPath));
 
-// fallback לכל נתיב שהוא לא /api → React Router
+// כל נתיב שלא מתחיל ב-/api → React Router
 app.get('*', (req, res) => {
-  // אם אין build עדיין, זה יעזור לך להבין בלוגים מה חסר
   res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 
@@ -53,6 +102,4 @@ app.get('*', (req, res) => {
    START SERVER
 ======================= */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("Server running on", PORT);
-});
+app.listen(PORT, () => console.log('Server running on', PORT));
