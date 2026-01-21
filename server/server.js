@@ -8,7 +8,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const db = new sqlite3.Database("./maze_records.db");
+// DB בתוך תיקיית server (יותר יציב גם ב-Render)
+const db = new sqlite3.Database(path.join(__dirname, "maze_records.db"));
 
 /* =======================
    DATABASE (BEST PER STAGE)
@@ -26,6 +27,8 @@ db.serialize(() => {
 /* =======================
    API ROUTES
 ======================= */
+app.get("/api/health", (req, res) => res.json({ ok: true }));
+
 app.post("/api/score", (req, res) => {
   const stage = Number(req.body.stage);
   const name = String(req.body.name || "").trim();
@@ -39,18 +42,26 @@ app.post("/api/score", (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
 
     if (!row) {
-      db.run("INSERT INTO records (stage, name, time) VALUES (?, ?, ?)", [stage, name, time], (err2) => {
-        if (err2) return res.status(500).json({ error: err2.message });
-        return res.json({ updated: true, reason: "first_record" });
-      });
+      db.run(
+        "INSERT INTO records (stage, name, time) VALUES (?, ?, ?)",
+        [stage, name, time],
+        (err2) => {
+          if (err2) return res.status(500).json({ error: err2.message });
+          return res.json({ updated: true, reason: "first_record" });
+        }
+      );
       return;
     }
 
     if (time < row.time) {
-      db.run("UPDATE records SET name = ?, time = ? WHERE stage = ?", [name, time, stage], (err3) => {
-        if (err3) return res.status(500).json({ error: err3.message });
-        return res.json({ updated: true, reason: "new_record" });
-      });
+      db.run(
+        "UPDATE records SET name = ?, time = ? WHERE stage = ?",
+        [name, time, stage],
+        (err3) => {
+          if (err3) return res.status(500).json({ error: err3.message });
+          return res.json({ updated: true, reason: "new_record" });
+        }
+      );
     } else {
       return res.json({ updated: false, reason: "not_better" });
     }
@@ -65,24 +76,26 @@ app.get("/api/records", (req, res) => {
 });
 
 /* =======================
-   SERVE REACT BUILD (if exists)
+   SERVE REACT BUILD (אם קיים)
 ======================= */
 const clientBuildPath = path.join(__dirname, "..", "client", "build");
-const indexPath = path.join(clientBuildPath, "index.html");
+const clientIndex = path.join(clientBuildPath, "index.html");
 
-if (fs.existsSync(indexPath)) {
+if (fs.existsSync(clientIndex)) {
   app.use(express.static(clientBuildPath));
 
-  // React Router fallback (רק אם יש build)
-  app.get("*", (req, res) => {
-    res.sendFile(indexPath);
+  // React Router fallback (אבל לא ל-/api)
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api")) return next();
+    res.sendFile(clientIndex);
   });
 } else {
-  // אם אין build (למשל משהו נשבר בבילד) לפחות תראה שהשרת חי
-  app.get("/", (req, res) => {
-    res.send("API is running. React build not found yet.");
-  });
+  // אם אין build (כמו ב-Render כשאתה מעלה רק server) – עדיין יש דף בסיסי
+  app.get("/", (req, res) => res.send("Maze API is running ✅  Try /api/records"));
 }
+
+// 404 רק ל-API
+app.use("/api", (req, res) => res.status(404).json({ error: "API route not found" }));
 
 /* =======================
    START SERVER
