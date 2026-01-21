@@ -90,8 +90,15 @@ app.get('/api/records', (req, res) => {
 /* =======================
    SERVE REACT BUILD
 ======================= */
+const fs = require('fs');
+
 const clientBuildPath = path.join(__dirname, '..', 'client', 'build');
-app.use(express.static(clientBuildPath));
+if (fs.existsSync(clientBuildPath)) {
+  app.use(express.static(clientBuildPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
+  });
+}
 
 // כל נתיב שלא מתחיל ב-/api → React Router
 app.get('*', (req, res) => {
