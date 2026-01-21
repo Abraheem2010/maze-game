@@ -32,23 +32,23 @@ function Stage2() {
     setGameState('COUNTDOWN');
   };
 
-  const handleWin = async (finalTime) => {
-    try {
-      const base = API || "";
-      await fetch(`${base}/api/score`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          stage: 2,
-          name: playerName,
-          time: parseFloat(finalTime),
-        }),
-      });
-    } catch (err) {
+  const handleWin = (finalTime) => {
+    // ✅ navigate timing is not blocked by saving
+    setTimeout(() => navigate('/'), 3000);
+
+    // ✅ save in background (no await)
+    const base = API || "";
+    fetch(`${base}/api/score`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        stage: 2,
+        name: playerName,
+        time: parseFloat(finalTime),
+      }),
+    }).catch((err) => {
       console.error("Save error:", err);
-    } finally {
-      setTimeout(() => navigate('/'), 3000);
-    }
+    });
   };
 
   return (
