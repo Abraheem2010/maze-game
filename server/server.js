@@ -73,15 +73,14 @@ const indexPath = path.join(clientBuildPath, "index.html");
 if (fs.existsSync(indexPath)) {
   app.use(express.static(clientBuildPath));
 
-  // only for NON-API routes
-  app.get("*", (req, res, next) => {
-    if (req.path.startsWith("/api")) return next();
-    return res.sendFile(indexPath);
+  // React Router fallback (רק אם יש build)
+  app.get("*", (req, res) => {
+    res.sendFile(indexPath);
   });
 } else {
-  // if you open / in browser and build doesn't exist yet
+  // אם אין build (למשל משהו נשבר בבילד) לפחות תראה שהשרת חי
   app.get("/", (req, res) => {
-    res.status(200).send("Server is running ✅ (React build not found yet)");
+    res.send("API is running. React build not found yet.");
   });
 }
 
