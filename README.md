@@ -1,40 +1,53 @@
-# Maze Game ????
+@'
+# Maze Game
 
-A full-stack maze game with stages, timer, and a leaderboard (Hall of Fame).
+A full-stack maze game with multiple stages, a timer, and a Hall of Fame leaderboard.
 
-## Live Demo
+## Deployed App (Render)
 https://maze-game-an6s.onrender.com
 
 ## Features
-- Multiple stages (Stage 1–3)
+- 3 stages (Stage 1-3)
 - Timer per stage
-- Submit best time per stage
-- Hall of Fame leaderboard
+- Saves best time per stage (updates only if the new time is better)
+- Hall of Fame leaderboard (best record per stage)
 
 ## Tech Stack
-- Frontend: React (CRA)
+- Frontend: React (Create React App)
 - Backend: Node.js + Express
-- DB: SQLite (local file)
+- Database: SQLite
 - Deployment: Render
 
 ## API
+Base URL: https://maze-game-an6s.onrender.com
+
 - GET /api/records
 - POST /api/score
-  Body example: { "stage": 1, "name": "player", "time": 123 }
+  Body example:
+  { "stage": 1, "name": "player", "time": 12.34 }
+
+## Project Structure
+- client/  (React)
+- server/  (Express + SQLite)
 
 ## Run Locally
-
 Backend:
-cd server
-npm install
-npm start
+1) cd server
+2) npm install
+3) npm start
 Server: http://localhost:3000
 
 Frontend (new terminal):
-cd client
-npm install
-npm start
-If port 3000 is taken, React will suggest another port (usually 3001).
+1) cd client
+2) npm install
+3) npm start
+If port 3000 is taken, React will use another port (usually 3001).
+
+Note:
+- client/package.json includes a proxy to http://localhost:3000
+  so fetch("/api/...") from the client goes to the server locally.
 
 ## Notes
 - Local DB file is ignored by git: server/maze_records.db
+- On Render, the first request after inactivity can be slower (cold start). Then it becomes fast.
+'@ | Out-File -FilePath README.md -Encoding utf8
