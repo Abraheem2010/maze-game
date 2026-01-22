@@ -1,5 +1,4 @@
-@'
-# Maze Game
+﻿# Maze Game
 
 A full-stack maze game with multiple stages, a timer, and a Hall of Fame leaderboard.
 
@@ -50,4 +49,3 @@ Note:
 ## Notes
 - Local DB file is ignored by git: server/maze_records.db
 - On Render, the first request after inactivity can be slower (cold start). Then it becomes fast.
-'@ | Out-File -FilePath README.md -Encoding utf8
