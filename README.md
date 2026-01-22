@@ -30,6 +30,8 @@ Base URL: https://maze-game-an6s.onrender.com
 - server/  (Express + SQLite)
 
 ## Run Locally
+(For local run only: localhost links work after you start the server/client as shown below.)
+(For local run only: localhost links work after you start the server/client as shown below.)
 Backend:
 1) cd server
 2) npm install
