@@ -6,14 +6,25 @@ const fs = require("fs");
 
 const app = express();
 
-// ===== Middleware =====
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// ===== DB (inside server folder) =====
+// לוג קצר לכל בקשה (עוזר להבין אם הבקשה בכלל מגיעה לשרת)
+app.use((req, res, next) => {
+  const t0 = Date.now();
+  res.on("finish", () => {
+    const ms = Date.now() - t0;
+    console.log(`${req.method} ${req.originalUrl} -> ${res.statusCode} (${ms}ms)`);
+  });
+  next();
+});
+
+// DB בתוך server
 const dbPath = path.join(__dirname, "maze_records.db");
 const db = new sqlite3.Database(dbPath);
 
+// Create table
 db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS records (
@@ -24,11 +35,25 @@ db.serialize(() => {
   `);
 });
 
-// ===== API ROUTES =====
+/* =======================
+   HEALTH / PING
+======================= */
+
+// זה הראוט שהגדרת ב-Render Health Check Path
+app.get("/healthc", (req, res) => {
+  res.status(200).send("ok");
+});
+
+// עוד ראוט נוח לבדיקה ידנית
 app.get("/api/ping", (req, res) => {
   res.json({ ok: true, ts: Date.now() });
 });
 
+/* =======================
+   API ROUTES
+======================= */
+
+// עדכון/יצירה של שיא
 app.post("/api/score", (req, res) => {
   const stage = Number(req.body.stage);
   const name = String(req.body.name || "").trim();
@@ -74,6 +99,7 @@ app.post("/api/score", (req, res) => {
   });
 });
 
+// מחזירים את השיאים
 app.get("/api/records", (req, res) => {
   db.all(
     "SELECT stage, name, time FROM records ORDER BY stage ASC",
@@ -85,37 +111,33 @@ app.get("/api/records", (req, res) => {
   );
 });
 
-// אם מישהו פוגע ב־/api/משהו-לא-קיים — נחזיר 404 JSON ברור
-app.use("/api", (req, res) => {
-  res.status(404).json({ error: "API route not found" });
-});
-
-// ===== SERVE REACT BUILD (if exists) =====
+/* =======================
+   SERVE REACT BUILD (אם קיים)
+======================= */
 const clientBuildPath = path.resolve(__dirname, "..", "client", "build");
 const indexHtml = path.join(clientBuildPath, "index.html");
 
 if (fs.existsSync(indexHtml)) {
   app.use(express.static(clientBuildPath));
 
-  // SPA fallback לכל דבר שהוא לא /api
-  app.get("*", (req, res) => {
+  // SPA fallback — אבל לא ל-/api
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api")) return next();
     res.sendFile(indexHtml);
   });
 } else {
-  // אין build? עדיין שיהיה root ברור ולא "Cannot GET /"
   app.get("/", (req, res) => {
-    res.send("Server is running ✅ (client build is missing)");
-  });
-
-  app.get("*", (req, res) => {
-    res.status(404).send("Not Found");
+    res.send("Server is running. Client build is missing.");
   });
 }
 
-// ===== START =====
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Server running on", PORT);
-  console.log("DB:", dbPath);
-  console.log("Client build exists?", fs.existsSync(indexHtml));
+// אם מישהו פוגע ב-API לא קיים — שיחזיר JSON ברור
+app.use("/api", (req, res) => {
+  res.status(404).json({ error: "API route not found" });
 });
+
+/* =======================
+   START SERVER
+======================= */
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, "0.0.0.0", () => console.log("Server running on", PORT));
