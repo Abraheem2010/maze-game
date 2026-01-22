@@ -1,12 +1,12 @@
-﻿# Maze Game 🧩🎮
+# Maze Game ????
 
 A full-stack maze game with stages, timer, and a leaderboard (Hall of Fame).
 
 ## Live Demo
-https://maze-game-q9ps.onrender.com
+https://maze-game-an6s.onrender.com
 
 ## Features
-- Multiple stages (Stage 1–3)
+- Multiple stages (Stage 1�3)
 - Timer per stage
 - Submit best time per stage
 - Hall of Fame leaderboard
