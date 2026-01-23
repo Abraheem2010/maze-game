@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Maze3 from './Maze3';
+import API_BASE from '../api';
 import './Stages.css';
 import './Stage3.css';
-
-const API = process.env.REACT_APP_API_URL || "";
 
 function Stage3() {
   const navigate = useNavigate();
@@ -35,7 +34,7 @@ function Stage3() {
     setGameState('COUNTDOWN');
   };
 
-  const handleWin = async (time) => {
+  const handleWin = (time) => {
     const t = parseFloat(time);
 
     // 1) פופאפ מיד
@@ -43,23 +42,20 @@ function Stage3() {
     setShowWinPopup(true);
 
     // 2) שליחה לשרת
-    try {
-      const base = API || "";
-      await fetch(`${base}/api/score`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          stage: 3,
-          name: playerName,
-          time: Number.isFinite(t) ? t : parseFloat(time),
-        }),
-      });
-    } catch (err) {
+    // 3) חזרה למפה אחרי 3 שניות
+    setTimeout(() => navigate('/'), 3000);
+
+    fetch(`${API_BASE}/api/score`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        stage: 3,
+        name: playerName,
+        time: Number.isFinite(t) ? t : parseFloat(time),
+      }),
+    }).catch((err) => {
       console.error("Save error:", err);
-    } finally {
-      // 3) חזרה למפה אחרי 3 שניות
-      setTimeout(() => navigate('/'), 3000);
-    }
+    });
   };
 
   return (

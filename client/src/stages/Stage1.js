@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Maze1 from './Maze1';
+import API_BASE from '../api';
 import './Stages.css';
 import './Stage1.css';
-
-const API = process.env.REACT_APP_API_URL || "";
 
 function Stage1() {
   const navigate = useNavigate();
@@ -32,23 +31,20 @@ function Stage1() {
     setGameState('COUNTDOWN');
   };
 
-  const handleWin = async (finalTime) => {
-    try {
-      const base = API || "";
-      await fetch(`${base}/api/score`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          stage: 1,
-          name: playerName,
-          time: parseFloat(finalTime),
-        }),
-      });
-    } catch (err) {
+  const handleWin = (finalTime) => {
+    setTimeout(() => navigate('/'), 3000);
+
+    fetch(`${API_BASE}/api/score`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        stage: 1,
+        name: playerName,
+        time: parseFloat(finalTime),
+      }),
+    }).catch((err) => {
       console.error("Save error:", err);
-    } finally {
-      setTimeout(() => navigate('/'), 3000);
-    }
+    });
   };
 
   return (

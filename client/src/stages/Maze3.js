@@ -102,8 +102,6 @@ function Maze3({ onWin }) {
     if (isWon) return;
 
     const handleKey = (e) => {
-      let { x, y } = player;
-
       const moveMap = {
         ArrowUp: [0, -1],
         ArrowDown: [0, 1],
@@ -115,22 +113,29 @@ function Maze3({ onWin }) {
       if (!move) return;
 
       const [dx, dy] = move;
-      if (MAZE3[y + dy] && MAZE3[y + dy][x + dx] === 0) {
-        x += dx;
-        y += dy;
+      setPlayer((prev) => {
+        let { x, y } = prev;
 
-        setPlayer({ x, y });
+        if (MAZE3[y + dy] && MAZE3[y + dy][x + dx] === 0) {
+          x += dx;
+          y += dy;
+        }
+
+        if (x === prev.x && y === prev.y) return prev;
 
         if (x === EXIT3.x && y === EXIT3.y) {
           setIsWon(true);
-          onWin(parseFloat(elapsed));
+          const finalTime = Number(((Date.now() - startTime) / 1000).toFixed(2));
+          onWin(finalTime);
         }
-      }
+
+        return { x, y };
+      });
     };
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [player, elapsed, onWin, isWon]);
+  }, [isWon, onWin, startTime]);
 
   return (
     <div className="maze-container">
