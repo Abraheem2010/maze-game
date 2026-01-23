@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
-import API_BASE from "./api";
+import { buildApiUrl } from "./api";
 
 function Leaderboard() {
   const [records, setRecords] = useState([]);
 
   const fetchRecords = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/records`);
+      const res = await fetch(buildApiUrl("/api/records"));
       const data = await res.json();
       setRecords(Array.isArray(data) ? data : []);
     } catch {

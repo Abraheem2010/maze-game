@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Maze1 from './Maze1';
-import API_BASE from '../api';
+import { buildApiUrl } from '../api';
 import './Stages.css';
 import './Stage1.css';
 
@@ -34,7 +34,7 @@ function Stage1() {
   const handleWin = (finalTime) => {
     setTimeout(() => navigate('/'), 3000);
 
-    fetch(`${API_BASE}/api/score`, {
+    fetch(buildApiUrl("/api/score"), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Maze3 from './Maze3';
-import API_BASE from '../api';
+import { buildApiUrl } from '../api';
 import './Stages.css';
 import './Stage3.css';
 
@@ -45,7 +45,7 @@ function Stage3() {
     // 3) חזרה למפה אחרי 3 שניות
     setTimeout(() => navigate('/'), 3000);
 
-    fetch(`${API_BASE}/api/score`, {
+    fetch(buildApiUrl("/api/score"), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
