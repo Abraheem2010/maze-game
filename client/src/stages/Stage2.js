@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Maze2 from './Maze2';
+import { buildApiUrl } from '../api';
 import './Stages.css';
 import './Stage2.css';
-
-const API = process.env.REACT_APP_API_URL || "";
 
 function Stage2() {
   const navigate = useNavigate();
@@ -37,8 +36,7 @@ function Stage2() {
     setTimeout(() => navigate('/'), 3000);
 
     // ✅ save in background (no await)
-    const base = API || "";
-    fetch(`${base}/api/score`, {
+    fetch(buildApiUrl("/api/score"), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
