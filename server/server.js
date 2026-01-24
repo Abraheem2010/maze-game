@@ -1,4 +1,4 @@
-const express = require("express");
+﻿const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const cors = require("cors");
 const path = require("path");
@@ -8,9 +8,71 @@ const app = express();
 
 // Middleware
 app.use(cors());
+
+/* === CONTENT_TYPE_GUARD === */
+app.use("/api/score", (req, res, next) => {
+  if (req.method === "POST") {
+    const ct = (req.headers["content-type"] || "").toLowerCase();
+    if (!ct.includes("application/json")) {
+      return res.status(415).json({ error: "Content-Type must be application/json" });
+    }
+  }
+  next();
+});
+/* === END CONTENT_TYPE_GUARD === */
+
 app.use(express.json());
 
-// לוג קצר לכל בקשה (עוזר להבין אם הבקשה בכלל מגיעה לשרת)
+/* === JSON_PARSE_ERROR_HANDLER === */
+app.use((err, req, res, next) => {
+  if (err && err.type === "entity.parse.failed") {
+    return res.status(400).json({ error: "Invalid JSON" });
+  }
+  return next(err);
+});
+/* === END JSON_PARSE_ERROR_HANDLER === */
+
+/* === VALIDATE_SCORE_MW (single source of truth) === */
+const MAX_NAME_LEN = 32;
+
+app.use("/api/score", (req, res, next) => {
+  if (req.method !== "POST") return next();
+
+  const stage = Number(req.body?.stage);
+  if (!Number.isInteger(stage) || stage < 1 || stage > 3) {
+    return res.status(400).json({ error: "Invalid stage" });
+  }
+
+  const n = req.body?.name;
+  if (typeof n !== "string") {
+    return res.status(400).json({ error: "Invalid name" });
+  }
+  const name = n.trim();
+
+  if (name.length < 2) {
+    return res.status(400).json({ error: "Invalid name" });
+  }
+
+  if (name.length > MAX_NAME_LEN) {
+    return res.status(400).json({ error: `Name too long (max ${MAX_NAME_LEN})` });
+  }
+
+  if (!/^[\p{L}\p{N} _-]+$/u.test(name)) {
+    return res.status(400).json({ error: "Invalid name" });
+  }
+
+  const time = Number(req.body?.time);
+  if (!Number.isFinite(time) || time <= 0) {
+    return res.status(400).json({ error: "Invalid time" });
+  }
+
+  req.body.stage = stage;
+  req.body.name = name;
+  req.body.time = Math.round(time * 100) / 100;
+
+  next();
+});
+/* === END VALIDATE_SCORE_MW === */// ×œ×•×’ ×§×¦×¨ ×œ×›×œ ×‘×§×©×” (×¢×•×–×¨ ×œ×”×‘×™×Ÿ ×× ×”×‘×§×©×” ×‘×›×œ×œ ×ž×’×™×¢×” ×œ×©×¨×ª)
 app.use((req, res, next) => {
   const t0 = Date.now();
   res.on("finish", () => {
@@ -20,7 +82,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// DB בתוך server
+// DB ×‘×ª×•×š server
 const dbPath = path.join(__dirname, "maze_records.db");
 const db = new sqlite3.Database(dbPath);
 
@@ -39,12 +101,12 @@ db.serialize(() => {
    HEALTH / PING
 ======================= */
 
-// זה הראוט שהגדרת ב-Render Health Check Path
+// ×–×” ×”×¨××•×˜ ×©×”×’×“×¨×ª ×‘-Render Health Check Path
 app.get("/healthc", (req, res) => {
   res.status(200).send("ok");
 });
 
-// עוד ראוט נוח לבדיקה ידנית
+// ×¢×•×“ ×¨××•×˜ × ×•×— ×œ×‘×“×™×§×” ×™×“× ×™×ª
 app.get("/api/ping", (req, res) => {
   res.json({ ok: true, ts: Date.now() });
 });
@@ -53,21 +115,17 @@ app.get("/api/ping", (req, res) => {
    API ROUTES
 ======================= */
 
-// עדכון/יצירה של שיא
+// ×¢×“×›×•×Ÿ/×™×¦×™×¨×” ×©×œ ×©×™×
 app.post("/api/score", (req, res) => {
-  const stage = Number(req.body.stage);
-  const name = String(req.body.name || "").trim();
-  const time = Number(req.body.time);
 
-  if (!Number.isFinite(stage) || stage <= 0) {
-    return res.status(400).json({ error: "Invalid stage" });
-  }
-  if (name.length < 2) {
-    return res.status(400).json({ error: "Invalid name" });
-  }
-  if (!Number.isFinite(time) || time <= 0) {
-    return res.status(400).json({ error: "Invalid time" });
-  }
+  // After VALIDATE_SCORE_MW - already normalized
+
+  const stage = req.body.stage;
+
+  const name  = req.body.name;
+
+  const time  = req.body.time;
+
 
   db.get("SELECT time FROM records WHERE stage = ?", [stage], (err, row) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -99,10 +157,10 @@ app.post("/api/score", (req, res) => {
   });
 });
 
-// מחזירים את השיאים
+// ×ž×—×–×™×¨×™× ××ª ×”×©×™××™×
 app.get("/api/records", (req, res) => {
   db.all(
-    "SELECT stage, name, time FROM records ORDER BY stage ASC",
+    "SELECT stage, name, time FROM records WHERE stage IN (1,2,3) ORDER BY stage ASC",
     [],
     (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
@@ -112,7 +170,7 @@ app.get("/api/records", (req, res) => {
 });
 
 /* =======================
-   SERVE REACT BUILD (אם קיים)
+   SERVE REACT BUILD (×× ×§×™×™×)
 ======================= */
 const clientBuildPath = path.resolve(__dirname, "..", "client", "build");
 const indexHtml = path.join(clientBuildPath, "index.html");
@@ -120,7 +178,7 @@ const indexHtml = path.join(clientBuildPath, "index.html");
 if (fs.existsSync(indexHtml)) {
   app.use(express.static(clientBuildPath));
 
-  // SPA fallback — אבל לא ל-/api
+  // SPA fallback â€” ××‘×œ ×œ× ×œ-/api
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api")) return next();
     res.sendFile(indexHtml);
@@ -131,13 +189,28 @@ if (fs.existsSync(indexHtml)) {
   });
 }
 
-// אם מישהו פוגע ב-API לא קיים — שיחזיר JSON ברור
+// ×× ×ž×™×©×”×• ×¤×•×’×¢ ×‘-API ×œ× ×§×™×™× â€” ×©×™×—×–×™×¨ JSON ×‘×¨×•×¨
 app.use("/api", (req, res) => {
   res.status(404).json({ error: "API route not found" });
 });
+
+/* === GLOBAL_JSON_ERROR_HANDLER === */
+app.use((err, req, res, next) => {
+  console.error(err);
+  const status = err.statusCode || err.status || 500;
+  res.status(status).json({
+    error: status === 500 ? "Server error" : (err.message || "Error")
+  });
+});
+/* === END GLOBAL_JSON_ERROR_HANDLER === */
 
 /* =======================
    START SERVER
 ======================= */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => console.log("Server running on", PORT));
+
+
+
+
+

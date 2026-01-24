@@ -159,7 +159,7 @@ function Maze1({ onWin, playerName }) {
         >
           <h2 style={{ fontSize: "2.5vw" }}>Well Done!</h2>
           <p style={{ fontSize: "1.8vw" }}>Stage completed in: {elapsed}s</p>
-          <p style={{ fontSize: "1.2vw" }}>Returning to map...</p>
+          <p style={{ fontSize: "1.2vw" }}>Loading next stage...</p>
         </div>
       )}
     </div>

@@ -8,7 +8,7 @@ function Maze2({ onWin, playerName }) {
   const [isWon, setIsWon] = useState(false);
   const cellSize = 25; // smaller cell size because the maze is larger
 
-  // ✅ FIX: memoize maze so it doesn't change on every render
+  // âœ… FIX: memoize maze so it doesn't change on every render
   const maze = useMemo(
     () => [
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -36,7 +36,7 @@ function Maze2({ onWin, playerName }) {
     []
   );
 
-  // ✅ FIX: memoize exit too
+  // âœ… FIX: memoize exit too
   const exit = useMemo(() => ({ x: 19, y: 19 }), []);
 
   // Timer
@@ -88,7 +88,7 @@ function Maze2({ onWin, playerName }) {
     );
   }, [player, cellSize, maze, exit]);
 
-  // ✅ FIX: keydown without depending on "player" / "elapsed"
+  // âœ… FIX: keydown without depending on "player" / "elapsed"
   useEffect(() => {
     if (isWon) return;
 
