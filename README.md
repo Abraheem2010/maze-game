@@ -1,43 +1,49 @@
-﻿# 🧩 Maze Adventure (Maze Game)
+﻿# Maze Game — Full-Stack Web App (React + Express + SQLite)
 
-A full-stack maze game with **3 stages**, a **timer per stage**, and a **Hall of Fame** leaderboard that stores the **best (fastest) time per stage**.
+A full-stack maze game with **3 stages** and a **Hall of Fame** leaderboard.  
+Each stage measures the player's completion time, sends the result to the backend, and the server stores **only the best (fastest) record per stage**.
 
-## 🌐 Deployed App (Render)
-Play the game here:
-https://maze-game-an6s.onrender.com
+---
 
-### How to open the game
-1) Open the Render link in your browser  
-2) You’ll see the **Stage Map** (Stage 1–3) and the **Hall of Fame**  
-3) Click a stage to enter its maze and start playing
+## Live Demo (Render)
+- App (UI): https://maze-game-an6s.onrender.com
+- API (records): https://maze-game-an6s.onrender.com/api/records
 
-> Note: After inactivity, Render may “cold start”, so the first request can be slower. Refresh once and it should be fast.
+---
 
-## 🎮 How the Game Works
-- 3 stages with increasing difficulty
-- Enter a stage → the timer starts
-- Reach the finish → the timer stops
-- The client sends `{ stage, name, time }` to the server
-- The server keeps **only the best (smallest) time** per stage
-- The Home page shows the **Hall of Fame** (best record per stage)
+## What the App Does
+1. The Home page shows **Stage 1–3** and the **Hall of Fame** table.
+2. When a player finishes a stage:
+   - the timer stops
+   - the client sends a score to the server
+   - the server updates the leaderboard **only if the new time is better**
+3. The Hall of Fame displays the current best record per stage.
 
-## ✅ Backend Response Reasons (POST /api/score)
-- `updated: true, reason: "first_record"` → first record for that stage
-- `updated: true, reason: "new_record"` → new time is better, record updated
-- `updated: false, reason: "not_better"` → new time is worse, record not updated
+---
 
-## 🏗️ Tech Stack
-- Frontend: React (Create React App)
-- Backend: Node.js + Express
-- Database: SQLite
-- Deployment: Render
+## Leaderboard Rule (Best Record Only)
+- The database keeps **one record per stage**.
+- A new score replaces the existing record **only when the time is smaller** (faster).
+- Otherwise, the record stays unchanged.
 
-## 📡 API
+---
+
+## Tech Stack
+- **Frontend:** React
+- **Backend:** Node.js + Express
+- **Database:** SQLite (file-based)
+
+---
+
+## API Endpoints
+Base URL (local): `http://localhost:3000`  
 Base URL (Render): `https://maze-game-an6s.onrender.com`
 
-- `GET /api/records` — returns the Hall of Fame (best record per stage)
-- `POST /api/score` — submits a score and updates only if the new time is better
-
-POST body example:
+### `GET /api/records`
+Returns the leaderboard (one row per stage), sorted by stage.
+Response example:
 ```json
-{ "stage": 1, "name": "player", "time": 12.34 }
+[
+  { "stage": 1, "name": "Ibrahim", "time": 12.34 },
+  { "stage": 2, "name": "Someone", "time": 18.21 }
+]

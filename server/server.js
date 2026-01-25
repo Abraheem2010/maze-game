@@ -81,7 +81,6 @@ app.use((req, res, next) => {
 const dbPath = path.join(__dirname, "maze_records.db");
 const db = new sqlite3.Database(dbPath);
 
-// Create table - stage as PRIMARY KEY ensures only ONE record per stage (World Record)
 db.serialize(() => {
   db.run("CREATE TABLE IF NOT EXISTS records (stage INTEGER PRIMARY KEY, name TEXT NOT NULL, time REAL NOT NULL)");
 });
@@ -94,15 +93,18 @@ app.get("/api/ping", (req, res) => {
   res.json({ ok: true, ts: Date.now() });
 });
 
+/* ✅ ADDED #1: /healthc */
+app.get("/healthc", (req, res) => {
+  res.json({ ok: true });
+});
+
 // Update/Create World Record
 app.post("/api/score", (req, res) => {
   const { stage, name, time } = req.body;
 
-  // 1. Check current World Record for this stage
   db.get("SELECT name, time FROM records WHERE stage = ?", [stage], (err, row) => {
     if (err) return res.status(500).json({ error: err.message });
 
-    // 2. If no record exists, insert the first one
     if (!row) {
       db.run(
         "INSERT INTO records (stage, name, time) VALUES (?, ?, ?)",
@@ -115,19 +117,25 @@ app.post("/api/score", (req, res) => {
       return;
     }
 
-    // 3. If record exists, update ONLY if the new time is strictly better (lower)
     if (time < row.time) {
       db.run(
         "UPDATE records SET name = ?, time = ? WHERE stage = ?",
         [name, time, stage],
         (err3) => {
           if (err3) return res.status(500).json({ error: err3.message });
-          return res.json({ updated: true, reason: "new_world_record", message: `New World Record! You beat ${row.name}` });
+          return res.json({
+            updated: true,
+            reason: "new_world_record",
+            message: `New World Record! You beat ${row.name}`,
+          });
         }
       );
     } else {
-      // 4. Not a new record
-      return res.json({ updated: false, reason: "not_better", message: `Current record is ${row.time}s by ${row.name}` });
+      return res.json({
+        updated: false,
+        reason: "not_better",
+        message: `Current record is ${row.time}s by ${row.name}`,
+      });
     }
   });
 });
@@ -137,6 +145,11 @@ app.get("/api/records", (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
+});
+
+/* ✅ ADDED #2: API 404 JSON (must be before React build + before app.get('*') ) */
+app.use("/api", (req, res) => {
+  res.status(404).json({ error: "API route not found" });
 });
 
 /* =======================
