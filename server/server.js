@@ -19,7 +19,6 @@ app.use("/api/score", (req, res, next) => {
   }
   next();
 });
-/* === END CONTENT_TYPE_GUARD === */
 
 app.use(express.json());
 
@@ -30,7 +29,6 @@ app.use((err, req, res, next) => {
   }
   return next(err);
 });
-/* === END JSON_PARSE_ERROR_HANDLER === */
 
 /* === VALIDATE_SCORE_MW (single source of truth) === */
 const MAX_NAME_LEN = 32;
@@ -49,16 +47,12 @@ app.use("/api/score", (req, res, next) => {
   }
   const name = n.trim();
 
-  if (name.length < 2) {
-    return res.status(400).json({ error: "Invalid name" });
-  }
-
-  if (name.length > MAX_NAME_LEN) {
-    return res.status(400).json({ error: 'Name too long' });
+  if (name.length < 2 || name.length > MAX_NAME_LEN) {
+    return res.status(400).json({ error: "Invalid name length" });
   }
 
   if (!/^[\p{L}\p{N} _-]+$/u.test(name)) {
-    return res.status(400).json({ error: "Invalid name" });
+    return res.status(400).json({ error: "Invalid name characters" });
   }
 
   const time = Number(req.body?.time);
@@ -72,102 +66,77 @@ app.use("/api/score", (req, res, next) => {
 
   next();
 });
-/* === END VALIDATE_SCORE_MW === */
 
 // Logger
 app.use((req, res, next) => {
   const t0 = Date.now();
   res.on("finish", () => {
     const ms = Date.now() - t0;
-    console.log(req.method + " " + req.originalUrl + " -> " + res.statusCode + " (" + ms + "ms)");
+    console.log(`${req.method} ${req.originalUrl} -> ${res.statusCode} (${ms}ms)`);
   });
   next();
 });
 
-// DB inside server folder
+// DB Setup
 const dbPath = path.join(__dirname, "maze_records.db");
 const db = new sqlite3.Database(dbPath);
 
-// Create table
+// Create table - stage as PRIMARY KEY ensures only ONE record per stage (World Record)
 db.serialize(() => {
   db.run("CREATE TABLE IF NOT EXISTS records (stage INTEGER PRIMARY KEY, name TEXT NOT NULL, time REAL NOT NULL)");
-});
-
-/* =======================
-   HEALTH / PING
-======================= */
-
-app.get("/healthc", (req, res) => {
-  res.status(200).send("ok");
-});
-
-app.get("/api/ping", (req, res) => {
-  res.json({ ok: true, ts: Date.now() });
 });
 
 /* =======================
    API ROUTES
 ======================= */
 
-// Update/Create Score
-app.post("/api/score", (req, res) => {
-  // After VALIDATE_SCORE_MW - already normalized
-  const stage = req.body.stage;
-  const name  = req.body.name;
-  const time  = req.body.time;
+app.get("/api/ping", (req, res) => {
+  res.json({ ok: true, ts: Date.now() });
+});
 
-  db.get("SELECT time FROM records WHERE stage = ?", [stage], (err, row) => {
+// Update/Create World Record
+app.post("/api/score", (req, res) => {
+  const { stage, name, time } = req.body;
+
+  // 1. Check current World Record for this stage
+  db.get("SELECT name, time FROM records WHERE stage = ?", [stage], (err, row) => {
     if (err) return res.status(500).json({ error: err.message });
 
+    // 2. If no record exists, insert the first one
     if (!row) {
       db.run(
         "INSERT INTO records (stage, name, time) VALUES (?, ?, ?)",
         [stage, name, time],
         (err2) => {
           if (err2) return res.status(500).json({ error: err2.message });
-          return res.json({ updated: true, reason: "first_record" });
+          return res.json({ updated: true, reason: "first_record", message: "World Record set!" });
         }
       );
       return;
     }
 
+    // 3. If record exists, update ONLY if the new time is strictly better (lower)
     if (time < row.time) {
       db.run(
         "UPDATE records SET name = ?, time = ? WHERE stage = ?",
         [name, time, stage],
         (err3) => {
           if (err3) return res.status(500).json({ error: err3.message });
-          return res.json({ updated: true, reason: "new_record" });
+          return res.json({ updated: true, reason: "new_world_record", message: `New World Record! You beat ${row.name}` });
         }
       );
     } else {
-      return res.json({ updated: false, reason: "not_better" });
+      // 4. Not a new record
+      return res.json({ updated: false, reason: "not_better", message: `Current record is ${row.time}s by ${row.name}` });
     }
   });
 });
 
-// Get Records (Original Route)
 app.get("/api/records", (req, res) => {
-  db.all(
-    "SELECT stage, name, time FROM records WHERE stage IN (1,2,3) ORDER BY stage ASC",
-    [],
-    (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json(rows);
-    }
-  );
-});
-
-// *** FIX: Leaderboard Alias for QA ***
-app.get("/api/leaderboard", (req, res) => {
-  db.all(
-    "SELECT stage, name, time FROM records WHERE stage IN (1,2,3) ORDER BY stage ASC",
-    [],
-    (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json(rows);
-    }
-  );
+  db.all("SELECT stage, name, time FROM records ORDER BY stage ASC", [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
 });
 
 /* =======================
@@ -178,35 +147,18 @@ const indexHtml = path.join(clientBuildPath, "index.html");
 
 if (fs.existsSync(indexHtml)) {
   app.use(express.static(clientBuildPath));
-
-  // SPA fallback
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api")) return next();
     res.sendFile(indexHtml);
   });
-} else {
-  app.get("/", (req, res) => {
-    res.send("Server is running. Client build is missing.");
-  });
 }
 
-// 404 for API
-app.use("/api", (req, res) => {
-  res.status(404).json({ error: "API route not found" });
-});
-
-/* === GLOBAL_JSON_ERROR_HANDLER === */
+// Global Error Handler
 app.use((err, req, res, next) => {
   console.error(err);
   const status = err.statusCode || err.status || 500;
-  res.status(status).json({
-    error: status === 500 ? "Server error" : (err.message || "Error")
-  });
+  res.status(status).json({ error: status === 500 ? "Server error" : err.message });
 });
-/* === END GLOBAL_JSON_ERROR_HANDLER === */
 
-/* =======================
-   START SERVER
-======================= */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => console.log("Server running on", PORT));

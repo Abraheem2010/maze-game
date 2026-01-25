@@ -1,53 +1,43 @@
-﻿# Maze Game
+﻿# 🧩 Maze Adventure (Maze Game)
 
-A full-stack maze game with multiple stages, a timer, and a Hall of Fame leaderboard.
+A full-stack maze game with **3 stages**, a **timer per stage**, and a **Hall of Fame** leaderboard that stores the **best (fastest) time per stage**.
 
-## Deployed App (Render)
+## 🌐 Deployed App (Render)
+Play the game here:
 https://maze-game-an6s.onrender.com
 
-## Features
-- 3 stages (Stage 1-3)
-- Timer per stage
-- Saves best time per stage (updates only if the new time is better)
-- Hall of Fame leaderboard (best record per stage)
+### How to open the game
+1) Open the Render link in your browser  
+2) You’ll see the **Stage Map** (Stage 1–3) and the **Hall of Fame**  
+3) Click a stage to enter its maze and start playing
 
-## Tech Stack
+> Note: After inactivity, Render may “cold start”, so the first request can be slower. Refresh once and it should be fast.
+
+## 🎮 How the Game Works
+- 3 stages with increasing difficulty
+- Enter a stage → the timer starts
+- Reach the finish → the timer stops
+- The client sends `{ stage, name, time }` to the server
+- The server keeps **only the best (smallest) time** per stage
+- The Home page shows the **Hall of Fame** (best record per stage)
+
+## ✅ Backend Response Reasons (POST /api/score)
+- `updated: true, reason: "first_record"` → first record for that stage
+- `updated: true, reason: "new_record"` → new time is better, record updated
+- `updated: false, reason: "not_better"` → new time is worse, record not updated
+
+## 🏗️ Tech Stack
 - Frontend: React (Create React App)
 - Backend: Node.js + Express
 - Database: SQLite
 - Deployment: Render
 
-## API
-Base URL: https://maze-game-an6s.onrender.com
+## 📡 API
+Base URL (Render): `https://maze-game-an6s.onrender.com`
 
-- GET /api/records
-- POST /api/score
-  Body example:
-  { "stage": 1, "name": "player", "time": 12.34 }
+- `GET /api/records` — returns the Hall of Fame (best record per stage)
+- `POST /api/score` — submits a score and updates only if the new time is better
 
-## Project Structure
-- client/  (React)
-- server/  (Express + SQLite)
-
-## Run Locally
-(For local run only: localhost links work after you start the server/client as shown below.)
-(For local run only: localhost links work after you start the server/client as shown below.)
-Backend:
-1) cd server
-2) npm install
-3) npm start
-Server: http://localhost:3000
-
-Frontend (new terminal):
-1) cd client
-2) npm install
-3) npm start
-If port 3000 is taken, React will use another port (usually 3001).
-
-Note:
-- client/package.json includes a proxy to http://localhost:3000
-  so fetch("/api/...") from the client goes to the server locally.
-
-## Notes
-- Local DB file is ignored by git: server/maze_records.db
-- On Render, the first request after inactivity can be slower (cold start). Then it becomes fast.
+POST body example:
+```json
+{ "stage": 1, "name": "player", "time": 12.34 }
