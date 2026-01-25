@@ -1,39 +1,107 @@
-/* Stage2.css - Identity of Stage 2 */
+/* Stage2.css - עיצוב כחול עמוק וטכנולוגי */
 
 .stage2-theme.stage-container {
-  background: radial-gradient(circle, #0f172a 0%, #020617 100%); /* כחול עמוק מאוד */
+  background: radial-gradient(circle, #0f172a 0%, #020617 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .stage2-theme .setup-card {
-  background: #1e293b; /* כחול מתכתי */
-  border: 0.4vw solid #38bdf8; /* טורקיז זוהר */
+  background: #1e293b;
+  border: 0.4vw solid #38bdf8;
   color: #f0f9ff;
   box-shadow: 0 0 30px rgba(56, 189, 248, 0.2);
+  padding: 2rem;
+  border-radius: 16px;
+  text-align: center;
 }
 
 .stage2-theme .setup-card input {
   border: 2px solid #38bdf8;
   background: #0f172a;
   color: white;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
 }
 
 .stage2-theme .start-btn {
   background: #38bdf8;
   color: #020617;
+  padding: 10px 20px;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
   box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+  font-weight: bold;
 }
 
 .stage2-theme .start-btn:hover {
   background: #7dd3fc;
 }
 
-.stage2-theme .countdown-overlay,
+/* טיימר למעלה */
 .stage2-theme .timer-display {
   color: #38bdf8;
-  text-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 2rem;
+  font-weight: bold;
+  text-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
+  margin-bottom: 15px;
 }
 
+/* מסגרת המבוך */
 .stage2-theme .maze-wrapper {
-  border: 5px solid #38bdf8;
+  border: 4px solid #38bdf8;
   box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);
+  background: #000;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+/* === כפתורי השליטה (העיצוב המקורי היפה) === */
+.stage2-theme .controls-layout {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.stage2-theme .control-row {
+  display: flex;
+  gap: 15px;
+}
+
+.stage2-theme .control-btn {
+  width: 60px;
+  height: 60px;
+  
+  /* עיצוב ריבועי עם פינות עגולות */
+  background-color: #1e293b; 
+  color: #38bdf8;            
+  border: 2px solid #38bdf8;
+  border-radius: 12px;
+  
+  font-size: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  touch-action: manipulation;
+  
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+  transition: transform 0.1s, background-color 0.2s;
+}
+
+.stage2-theme .control-btn:active {
+  transform: scale(0.95);
+  background-color: #38bdf8;
+  color: #0f172a;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.8);
 }

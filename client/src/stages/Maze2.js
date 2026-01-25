@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 
 function Maze2({ onWin, playerName }) {
   const canvasRef = useRef(null);
@@ -6,40 +6,35 @@ function Maze2({ onWin, playerName }) {
   const [startTime] = useState(Date.now());
   const [elapsed, setElapsed] = useState(0);
   const [isWon, setIsWon] = useState(false);
-  const cellSize = 25; // smaller cell size because the maze is larger
+  const cellSize = 25; // גודל תאים למבוך הגדול
 
-  // âœ… FIX: memoize maze so it doesn't change on every render
-  const maze = useMemo(
-    () => [
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
-      [1,0,1,0,1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,0,1],
-      [1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,1],
-      [1,0,1,1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,0,1],
-      [1,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,1,0,1],
-      [1,1,1,1,1,0,1,1,1,1,1,1,1,0,1,0,1,1,1,0,1],
-      [1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,1],
-      [1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,0,1],
-      [1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1],
-      [1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,0,1,0,1],
-      [1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1],
-      [1,1,1,1,1,1,1,0,1,0,1,1,1,0,1,1,1,1,1,1,1],
-      [1,0,0,0,0,0,1,0,1,0,1,0,0,0,1,0,0,0,0,0,1],
-      [1,0,1,1,1,0,1,0,1,0,1,0,1,1,1,0,1,1,1,0,1],
-      [1,0,1,0,1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1],
-      [1,0,1,0,1,0,1,1,1,1,1,1,1,0,1,0,1,0,1,1,1],
-      [1,0,1,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1],
-      [1,0,1,1,1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,0,1],
-      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    ],
-    []
-  );
+  // המבוך הגדול המקורי (21 על 21)
+  const maze = useMemo(() => [
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
+    [1,0,1,0,1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,0,1],
+    [1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,1],
+    [1,0,1,1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,0,1],
+    [1,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,1,0,1],
+    [1,1,1,1,1,0,1,1,1,1,1,1,1,0,1,0,1,1,1,0,1],
+    [1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,1],
+    [1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,0,1],
+    [1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1],
+    [1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,0,1,0,1],
+    [1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,0,1,0,1,1,1,0,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,1,0,1,0,1,0,0,0,1,0,0,0,0,0,1],
+    [1,0,1,1,1,0,1,0,1,0,1,0,1,1,1,0,1,1,1,0,1],
+    [1,0,1,0,1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1],
+    [1,0,1,0,1,0,1,1,1,1,1,1,1,0,1,0,1,0,1,1,1],
+    [1,0,1,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1],
+    [1,0,1,1,1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  ], []);
 
-  // âœ… FIX: memoize exit too
   const exit = useMemo(() => ({ x: 19, y: 19 }), []);
 
-  // Timer
   useEffect(() => {
     if (isWon) return;
     const timer = setInterval(() => {
@@ -48,107 +43,94 @@ function Maze2({ onWin, playerName }) {
     return () => clearInterval(timer);
   }, [startTime, isWon]);
 
-  // Draw
+  // ציור בצבעים המקוריים (כחול עמוק וטורקיז)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#020617";
+
+    ctx.fillStyle = "#020617"; // רקע כחול כהה
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     maze.forEach((row, y) => {
       row.forEach((cell, x) => {
         if (cell === 1) {
-          ctx.fillStyle = "#1e40af"; // blue walls
+          ctx.fillStyle = "#1e40af"; // קירות כחולים
           ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
         }
       });
     });
 
-    // exit (glowing purple)
+    // יציאה (סגול זוהר)
     ctx.fillStyle = "#a855f7";
     ctx.beginPath();
-    ctx.arc(
-      exit.x * cellSize + cellSize / 2,
-      exit.y * cellSize + cellSize / 2,
-      cellSize / 3,
-      0,
-      Math.PI * 2
-    );
+    ctx.arc(exit.x * cellSize + cellSize/2, exit.y * cellSize + cellSize/2, cellSize/3, 0, Math.PI*2);
     ctx.fill();
 
-    // player (turquoise)
+    // שחקן (טורקיז)
     ctx.fillStyle = "#38bdf8";
-    ctx.fillRect(
-      player.x * cellSize + 5,
-      player.y * cellSize + 5,
-      cellSize - 10,
-      cellSize - 10
-    );
-  }, [player, cellSize, maze, exit]);
+    ctx.fillRect(player.x * cellSize + 5, player.y * cellSize + 5, cellSize - 10, cellSize - 10);
+  }, [player, maze, exit]);
 
-  // âœ… FIX: keydown without depending on "player" / "elapsed"
-  useEffect(() => {
+  const handleMove = useCallback((dx, dy) => {
     if (isWon) return;
-
-    const handleKey = (e) => {
-      setPlayer((prev) => {
-        let { x, y } = prev;
-
-        if (e.key === "ArrowUp" && maze[y - 1][x] === 0) y--;
-        if (e.key === "ArrowDown" && maze[y + 1][x] === 0) y++;
-        if (e.key === "ArrowLeft" && maze[y][x - 1] === 0) x--;
-        if (e.key === "ArrowRight" && maze[y][x + 1] === 0) x++;
-
-        if (x === prev.x && y === prev.y) return prev;
-
-        // Win
-        if (x === exit.x && y === exit.y) {
-          setIsWon(true);
-
-          // take a clean final time (no dependency on elapsed)
-          const finalTime = Number(((Date.now() - startTime) / 1000).toFixed(2));
-          onWin(finalTime);
+    setPlayer((prev) => {
+      const newX = prev.x + dx;
+      const newY = prev.y + dy;
+      if (maze[newY][newX] !== 0) return prev;
+      if (newX === exit.x && newY === exit.y) {
+        setIsWon(true);
+        const finalTime = Number(((Date.now() - startTime) / 1000).toFixed(2));
+        if (typeof onWin === 'function') {
+           onWin(finalTime);
         }
-
-        return { x, y };
-      });
-    };
-
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+      }
+      return { x: newX, y: newY };
+    });
   }, [isWon, maze, exit, onWin, startTime]);
 
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "ArrowUp") handleMove(0, -1);
+      if (e.key === "ArrowDown") handleMove(0, 1);
+      if (e.key === "ArrowLeft") handleMove(-1, 0);
+      if (e.key === "ArrowRight") handleMove(1, 0);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [handleMove]);
+
   return (
-    <div className="maze-container">
-      <div className="timer-display">DEPTH TIME: {elapsed}s</div>
+    <div className="maze-container" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <div className="timer-display" style={{ marginBottom: "10px" }}>DEPTH TIME: {elapsed}s</div>
 
       <div className="maze-wrapper">
         <canvas
           ref={canvasRef}
           width={maze[0].length * cellSize}
           height={maze.length * cellSize}
+          style={{ maxWidth: "100%", height: "auto", display: "block" }}
         />
       </div>
 
+      {/* כפתורי שליטה (משתמשים ב-CSS של Stage2) */}
+      {!isWon && (
+        <div className="controls-layout">
+          <button className="control-btn" onPointerDown={(e) => {e.preventDefault(); handleMove(0, -1);}}>▲</button>
+          <div className="control-row">
+            <button className="control-btn" onPointerDown={(e) => {e.preventDefault(); handleMove(-1, 0);}}>◀</button>
+            <button className="control-btn" onPointerDown={(e) => {e.preventDefault(); handleMove(0, 1);}}>▼</button>
+            <button className="control-btn" onPointerDown={(e) => {e.preventDefault(); handleMove(1, 0);}}>▶</button>
+          </div>
+        </div>
+      )}
+
       {isWon && (
-        <div
-          className="win-overlay"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(2, 6, 23, 0.9)",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            color: "#38bdf8",
-          }}
-        >
+        <div className="win-overlay" style={{
+           position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
+           backgroundColor: "rgba(2,6,23,0.9)", display: "flex", flexDirection: "column",
+           justifyContent: "center", alignItems: "center", color: "#38bdf8"
+        }}>
           <h2>Surface Reached!</h2>
           <p>Time: {elapsed}s</p>
         </div>
