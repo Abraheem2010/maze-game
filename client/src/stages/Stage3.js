@@ -15,6 +15,12 @@ function Stage3() {
   const [showWinPopup, setShowWinPopup] = useState(false);
   const [finalTime, setFinalTime] = useState(0);
 
+  // טעינת שם
+  useEffect(() => {
+     const savedName = localStorage.getItem("playerName");
+     if (savedName) setPlayerName(savedName);
+  }, []);
+
   useEffect(() => {
     if (gameState !== 'COUNTDOWN') return;
 
@@ -28,13 +34,10 @@ function Stage3() {
 
   const handleStart = () => {
     const trimmed = playerName.trim();
-
     if (trimmed.length < 2) {
       alert("Please enter a name");
       return;
     }
-
-    // שומרים שם כדי שגם השרת ושלבים אחרים יקבלו אותו
     try { localStorage.setItem("playerName", trimmed); } catch (e) {}
 
     setCountdown(3);
@@ -47,19 +50,15 @@ function Stage3() {
         ? winTime
         : 0;
 
-    // מעדיפים state, ואם ריק אז localStorage
     const name = (playerName || localStorage.getItem("playerName") || "player").trim();
-
     const payload = { stage: 3, name, time };
 
-    // אופציונלי: פופאפ ניצחון (אם תרצה להשאיר)
+    // פופאפ ניצחון
     setFinalTime(time);
     setShowWinPopup(true);
 
-    // mark leaderboard dirty
     try { localStorage.setItem("records_dirty", String(Date.now())); } catch (e) {}
 
-    // save in background (NO await)
     try {
       if (navigator.sendBeacon) {
         const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
@@ -74,10 +73,10 @@ function Stage3() {
       }
     } catch (e) {}
 
-    // חוזרים לבית אחרי רגע קטן כדי שהשחקן יראה ניצחון
+    // חוזרים לבית אחרי 3 שניות (תן לו להנות מהניצחון)
     setTimeout(() => {
       navigate("/", { state: { playerName: name } });
-    }, 700);
+    }, 3000);
   };
 
   return (

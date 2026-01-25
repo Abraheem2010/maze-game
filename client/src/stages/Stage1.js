@@ -31,7 +31,7 @@ function Stage1() {
       return;
     }
 
-    // שמירה של השם כדי שגם stages הבאים והשרת יקבלו אותו
+    // שמירה של השם כדי שגם stages הבאים והשרת יקבלו אותו אוטומטית
     try { localStorage.setItem("playerName", trimmed); } catch (e) {}
 
     setCountdown(3);
@@ -52,7 +52,7 @@ function Stage1() {
     // mark leaderboard dirty
     try { localStorage.setItem("records_dirty", String(Date.now())); } catch (e) {}
 
-    // save in background (NO await)
+    // save in background (Smart Save)
     try {
       if (navigator.sendBeacon) {
         const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
@@ -107,16 +107,13 @@ function Stage1() {
       )}
 
       {gameState === 'COUNTDOWN' && (
-        <div className="countdown-overlay">
-          {countdown > 0 ? countdown : "GO!"}
-        </div>
+        <div className="countdown-overlay">{countdown}</div>
       )}
 
       {gameState === 'PLAYING' && (
         <div className="game-active">
-          <div className="maze-wrapper">
-            <Maze1 onWin={handleWin} playerName={playerName} />
-          </div>
+           {/* שים לב: אנחנו מניחים שהקומפוננטה Maze1 נמצאת באותה תיקייה */}
+          <Maze1 onWin={handleWin} />
         </div>
       )}
     </div>

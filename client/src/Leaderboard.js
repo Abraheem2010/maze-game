@@ -5,6 +5,7 @@ function Leaderboard() {
 
   const fetchRecords = useCallback(async () => {
     try {
+      // הוספנו ?t= כדי למנוע מהדפדפן לזכור נתונים ישנים (Cache)
       const res = await fetch("/api/records?t=" + Date.now());
       const data = await res.json();
       setRecords(Array.isArray(data) ? data : []);
@@ -15,6 +16,7 @@ function Leaderboard() {
 
   useEffect(() => {
     fetchRecords();
+    // עדכון כל 300 מילישניות (מהיר מאוד!)
     const interval = setInterval(fetchRecords, 300);
     return () => clearInterval(interval);
   }, [fetchRecords]);
@@ -43,4 +45,3 @@ function Leaderboard() {
 }
 
 export default Leaderboard;
-

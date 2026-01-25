@@ -12,6 +12,12 @@ function Stage2() {
   const [playerName, setPlayerName] = useState('');
   const [countdown, setCountdown] = useState(3);
 
+  // טעינת השם האוטומטית
+  useEffect(() => {
+     const savedName = localStorage.getItem("playerName");
+     if (savedName) setPlayerName(savedName);
+  }, []);
+
   useEffect(() => {
     if (gameState !== 'COUNTDOWN') return;
 
@@ -31,7 +37,6 @@ function Stage2() {
       return;
     }
 
-    // שומרים שם כדי שהשרת ושלבים אחרים יקבלו אותו
     try { localStorage.setItem("playerName", trimmed); } catch (e) {}
 
     setCountdown(3);
@@ -44,15 +49,11 @@ function Stage2() {
         ? finalTime
         : 0;
 
-    // מעדיפים state, ואם ריק אז localStorage
     const name = (playerName || localStorage.getItem("playerName") || "player").trim();
-
     const payload = { stage: 2, name, time };
 
-    // mark leaderboard dirty
     try { localStorage.setItem("records_dirty", String(Date.now())); } catch (e) {}
 
-    // save in background (NO await)
     try {
       if (navigator.sendBeacon) {
         const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
@@ -67,7 +68,6 @@ function Stage2() {
       }
     } catch (e) {}
 
-    // next stage
     navigate("/stage3", { state: { playerName: name } });
   };
 
@@ -107,9 +107,7 @@ function Stage2() {
       )}
 
       {gameState === 'COUNTDOWN' && (
-        <div className="countdown-overlay">
-          {countdown > 0 ? countdown : "GO!"}
-        </div>
+        <div className="countdown-overlay">{countdown}</div>
       )}
 
       {gameState === 'PLAYING' && (
