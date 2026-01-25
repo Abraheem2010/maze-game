@@ -30,3 +30,11 @@ server/*.db
 *.bak*
 backup_*/
 server/*.patch
+
+# local reports
+_report/
+
+
+# local reports
+_report/
+
