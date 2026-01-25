@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Maze3 from './Maze3';
-import { buildApiUrl } from '../api';
 import './Stages.css';
 import './Stage3.css';
+
+const API = process.env.REACT_APP_API_URL || "";
 
 function Stage3() {
   const navigate = useNavigate();
@@ -26,36 +27,57 @@ function Stage3() {
   }, [gameState, countdown]);
 
   const handleStart = () => {
-    if (playerName.trim().length < 2) {
+    const trimmed = playerName.trim();
+
+    if (trimmed.length < 2) {
       alert("Please enter a name");
       return;
     }
+
+    // שומרים שם כדי שגם השרת ושלבים אחרים יקבלו אותו
+    try { localStorage.setItem("playerName", trimmed); } catch (e) {}
+
     setCountdown(3);
     setGameState('COUNTDOWN');
   };
 
-  const handleWin = (time) => {
-    const t = parseFloat(time);
+  const handleWin = (winTime) => {
+    const time =
+      (typeof winTime === "number" && Number.isFinite(winTime))
+        ? winTime
+        : 0;
 
-    // 1) פופאפ מיד
-    setFinalTime(Number.isFinite(t) ? t : time);
+    // מעדיפים state, ואם ריק אז localStorage
+    const name = (playerName || localStorage.getItem("playerName") || "player").trim();
+
+    const payload = { stage: 3, name, time };
+
+    // אופציונלי: פופאפ ניצחון (אם תרצה להשאיר)
+    setFinalTime(time);
     setShowWinPopup(true);
 
-    // 2) שליחה לשרת
-    // 3) חזרה למפה אחרי 3 שניות
-    setTimeout(() => navigate('/'), 3000);
+    // mark leaderboard dirty
+    try { localStorage.setItem("records_dirty", String(Date.now())); } catch (e) {}
 
-    fetch(buildApiUrl("/api/score"), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        stage: 3,
-        name: playerName,
-        time: Number.isFinite(t) ? t : parseFloat(time),
-      }),
-    }).catch((err) => {
-      console.error("Save error:", err);
-    });
+    // save in background (NO await)
+    try {
+      if (navigator.sendBeacon) {
+        const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+        navigator.sendBeacon(`${API}/api/score`, blob);
+      } else {
+        fetch(`${API}/api/score`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          keepalive: true,
+        }).catch(() => {});
+      }
+    } catch (e) {}
+
+    // חוזרים לבית אחרי רגע קטן כדי שהשחקן יראה ניצחון
+    setTimeout(() => {
+      navigate("/", { state: { playerName: name } });
+    }, 700);
   };
 
   return (
@@ -81,6 +103,10 @@ function Stage3() {
 
           <button className="start-btn" onClick={handleStart}>
             Face the Heat
+          </button>
+
+          <button className="back-home-btn" type="button" onClick={() => navigate("/")}>
+            Back to Home
           </button>
         </div>
       )}
@@ -120,9 +146,9 @@ function Stage3() {
               color: 'white'
             }}
           >
-            <h2 style={{ color: '#ff4500', margin: '0 0 10px 0' }}>🏆 VICTORY!</h2>
+            <h2 style={{ color: '#ff4500', margin: '0 0 10px 0' }}>🔥 VICTORY!</h2>
             <p style={{ fontSize: '1.2rem', margin: '10px 0' }}>
-              Wow! You made it within <br />
+              You made it in <br />
               <span style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{finalTime}</span> seconds!
             </p>
           </div>

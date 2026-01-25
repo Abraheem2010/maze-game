@@ -1,12 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
-import { buildApiUrl } from "./api";
 
 function Leaderboard() {
   const [records, setRecords] = useState([]);
 
   const fetchRecords = useCallback(async () => {
     try {
-      const res = await fetch(buildApiUrl("/api/records"));
+      const res = await fetch("/api/records?t=" + Date.now());
       const data = await res.json();
       setRecords(Array.isArray(data) ? data : []);
     } catch {
@@ -16,7 +15,7 @@ function Leaderboard() {
 
   useEffect(() => {
     fetchRecords();
-    const interval = setInterval(fetchRecords, 5000);
+    const interval = setInterval(fetchRecords, 300);
     return () => clearInterval(interval);
   }, [fetchRecords]);
 
@@ -44,3 +43,4 @@ function Leaderboard() {
 }
 
 export default Leaderboard;
+

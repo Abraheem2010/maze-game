@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Maze1 from './Maze1';
-import { buildApiUrl } from '../api';
 import './Stages.css';
 import './Stage1.css';
+
+const API = process.env.REACT_APP_API_URL || "";
 
 function Stage1() {
   const navigate = useNavigate();
@@ -23,28 +24,51 @@ function Stage1() {
   }, [gameState, countdown]);
 
   const handleStart = () => {
-    if (playerName.trim().length < 2) {
+    const trimmed = playerName.trim();
+
+    if (trimmed.length < 2) {
       alert("Please enter a name");
       return;
     }
+
+    // שמירה של השם כדי שגם stages הבאים והשרת יקבלו אותו
+    try { localStorage.setItem("playerName", trimmed); } catch (e) {}
+
     setCountdown(3);
     setGameState('COUNTDOWN');
   };
 
   const handleWin = (finalTime) => {
-    setTimeout(() => navigate('/'), 3000);
+    const time =
+      (typeof finalTime === "number" && Number.isFinite(finalTime))
+        ? finalTime
+        : 0;
 
-    fetch(buildApiUrl("/api/score"), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        stage: 1,
-        name: playerName,
-        time: parseFloat(finalTime),
-      }),
-    }).catch((err) => {
-      console.error("Save error:", err);
-    });
+    // מעדיפים את השם מה-state, ואם אין אז מה-localStorage
+    const name = (playerName || localStorage.getItem("playerName") || "player").trim();
+
+    const payload = { stage: 1, name, time };
+
+    // mark leaderboard dirty
+    try { localStorage.setItem("records_dirty", String(Date.now())); } catch (e) {}
+
+    // save in background (NO await)
+    try {
+      if (navigator.sendBeacon) {
+        const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+        navigator.sendBeacon(`${API}/api/score`, blob);
+      } else {
+        fetch(`${API}/api/score`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          keepalive: true,
+        }).catch(() => {});
+      }
+    } catch (e) {}
+
+    // instant next stage
+    navigate("/stage2", { state: { playerName: name } });
   };
 
   return (
@@ -70,6 +94,14 @@ function Stage1() {
 
           <button className="start-btn" onClick={handleStart}>
             Enter the Maze
+          </button>
+
+          <button
+            className="back-home-btn"
+            type="button"
+            onClick={() => navigate("/")}
+          >
+            Back to Home
           </button>
         </div>
       )}

@@ -54,7 +54,7 @@ app.use("/api/score", (req, res, next) => {
   }
 
   if (name.length > MAX_NAME_LEN) {
-    return res.status(400).json({ error: `Name too long (max ${MAX_NAME_LEN})` });
+    return res.status(400).json({ error: 'Name too long' });
   }
 
   if (!/^[\p{L}\p{N} _-]+$/u.test(name)) {
@@ -72,41 +72,35 @@ app.use("/api/score", (req, res, next) => {
 
   next();
 });
-/* === END VALIDATE_SCORE_MW === */// ×œ×•×’ ×§×¦×¨ ×œ×›×œ ×‘×§×©×” (×¢×•×–×¨ ×œ×”×‘×™×Ÿ ×× ×”×‘×§×©×” ×‘×›×œ×œ ×ž×’×™×¢×” ×œ×©×¨×ª)
+/* === END VALIDATE_SCORE_MW === */
+
+// Logger
 app.use((req, res, next) => {
   const t0 = Date.now();
   res.on("finish", () => {
     const ms = Date.now() - t0;
-    console.log(`${req.method} ${req.originalUrl} -> ${res.statusCode} (${ms}ms)`);
+    console.log(req.method + " " + req.originalUrl + " -> " + res.statusCode + " (" + ms + "ms)");
   });
   next();
 });
 
-// DB ×‘×ª×•×š server
+// DB inside server folder
 const dbPath = path.join(__dirname, "maze_records.db");
 const db = new sqlite3.Database(dbPath);
 
 // Create table
 db.serialize(() => {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS records (
-      stage INTEGER PRIMARY KEY,
-      name TEXT NOT NULL,
-      time REAL NOT NULL
-    )
-  `);
+  db.run("CREATE TABLE IF NOT EXISTS records (stage INTEGER PRIMARY KEY, name TEXT NOT NULL, time REAL NOT NULL)");
 });
 
 /* =======================
    HEALTH / PING
 ======================= */
 
-// ×–×” ×”×¨××•×˜ ×©×”×’×“×¨×ª ×‘-Render Health Check Path
 app.get("/healthc", (req, res) => {
   res.status(200).send("ok");
 });
 
-// ×¢×•×“ ×¨××•×˜ × ×•×— ×œ×‘×“×™×§×” ×™×“× ×™×ª
 app.get("/api/ping", (req, res) => {
   res.json({ ok: true, ts: Date.now() });
 });
@@ -115,17 +109,12 @@ app.get("/api/ping", (req, res) => {
    API ROUTES
 ======================= */
 
-// ×¢×“×›×•×Ÿ/×™×¦×™×¨×” ×©×œ ×©×™×
+// Update/Create Score
 app.post("/api/score", (req, res) => {
-
   // After VALIDATE_SCORE_MW - already normalized
-
   const stage = req.body.stage;
-
   const name  = req.body.name;
-
   const time  = req.body.time;
-
 
   db.get("SELECT time FROM records WHERE stage = ?", [stage], (err, row) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -157,7 +146,7 @@ app.post("/api/score", (req, res) => {
   });
 });
 
-// ×ž×—×–×™×¨×™× ××ª ×”×©×™××™×
+// Get Records (Original Route)
 app.get("/api/records", (req, res) => {
   db.all(
     "SELECT stage, name, time FROM records WHERE stage IN (1,2,3) ORDER BY stage ASC",
@@ -169,8 +158,20 @@ app.get("/api/records", (req, res) => {
   );
 });
 
+// *** FIX: Leaderboard Alias for QA ***
+app.get("/api/leaderboard", (req, res) => {
+  db.all(
+    "SELECT stage, name, time FROM records WHERE stage IN (1,2,3) ORDER BY stage ASC",
+    [],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    }
+  );
+});
+
 /* =======================
-   SERVE REACT BUILD (×× ×§×™×™×)
+   SERVE REACT BUILD
 ======================= */
 const clientBuildPath = path.resolve(__dirname, "..", "client", "build");
 const indexHtml = path.join(clientBuildPath, "index.html");
@@ -178,7 +179,7 @@ const indexHtml = path.join(clientBuildPath, "index.html");
 if (fs.existsSync(indexHtml)) {
   app.use(express.static(clientBuildPath));
 
-  // SPA fallback â€” ××‘×œ ×œ× ×œ-/api
+  // SPA fallback
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api")) return next();
     res.sendFile(indexHtml);
@@ -189,7 +190,7 @@ if (fs.existsSync(indexHtml)) {
   });
 }
 
-// ×× ×ž×™×©×”×• ×¤×•×’×¢ ×‘-API ×œ× ×§×™×™× â€” ×©×™×—×–×™×¨ JSON ×‘×¨×•×¨
+// 404 for API
 app.use("/api", (req, res) => {
   res.status(404).json({ error: "API route not found" });
 });
@@ -209,8 +210,3 @@ app.use((err, req, res, next) => {
 ======================= */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => console.log("Server running on", PORT));
-
-
-
-
-
