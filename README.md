@@ -7,7 +7,8 @@ and the server stores only the best (fastest) record per stage.
 ---
 
 ## Live Demo (Render)
-- https://maze-game-an6s.onrender.com (single service: UI + API under `/api`)
+- Client (React): https://maze-game-2-1m4y.onrender.com
+- Server (Express API): https://maze-game-1-hmxj.onrender.com
 
 ---
 
@@ -57,7 +58,7 @@ If not set, the client uses the same origin and `/api/*` routes.
 
 ## API Endpoints
 Base URL (local API): http://localhost:3000  
-Base URL (Render): same as the app link above
+Base URL (Render): https://maze-game-1-hmxj.onrender.com
 
 ### `GET /api/ping`
 Health check.
@@ -103,6 +104,17 @@ Table: `records (stage INTEGER PRIMARY KEY, name TEXT NOT NULL, time REAL NOT NU
 ---
 
 ## Deployment (Render)
+Two services (Option 3):
+- Server (Web Service)
+  - Root Directory: `server`
+  - Build Command: `npm install`
+  - Start Command: `npm start`
+- Client (Static Site)
+  - Root Directory: `client`
+  - Build Command: `npm install && npm run build`
+  - Publish Directory: `build`
+  - Env Var: `REACT_APP_API_URL=https://maze-game-1-hmxj.onrender.com`
+
 Single service (Express serves React build):
 1. Build the client: `cd client && npm run build`
 2. Ensure the build output is in `client/build`
