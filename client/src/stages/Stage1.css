@@ -1,0 +1,66 @@
+/* Stage1.css - העיצוב הספציפי לשלב 1 */
+.stage1-theme.stage-container {
+  background: #1a1a1a;
+}
+
+.stage1-theme .setup-card {
+  background: #f2e2c4; /* Parchment */
+  border: 0.4vw solid #4a2c10; /* Dark wood */
+  color: #3d2511;
+}
+
+.stage1-theme .setup-card input {
+  border: 2px solid #4a2c10;
+}
+
+.stage1-theme .start-btn {
+  background: #4a2c10;
+  color: #f2e2c4;
+}
+
+.stage1-theme .countdown-overlay,
+.stage1-theme .timer-display {
+  color: gold;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+}
+
+.stage1-theme .maze-wrapper {
+  border: 5px solid gold;
+}
+
+/* === תוספת חדשה: כפתורי שליטה (עכבר/טאץ') === */
+.stage1-theme .controls-layout {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.stage1-theme .control-row {
+  display: flex;
+  gap: 15px;
+}
+
+.stage1-theme .control-btn {
+  width: 60px;
+  height: 60px;
+  background-color: #4a2c10; /* Dark Wood - תואם לעיצוב */
+  color: gold;               /* Gold - תואם למסגרת */
+  border: 2px solid gold;
+  border-radius: 12px;
+  font-size: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;         /* מונע סימון טקסט */
+  touch-action: manipulation; /* מונע זום בטלפון */
+  box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+  transition: transform 0.1s, background-color 0.2s;
+}
+
+.stage1-theme .control-btn:active {
+  transform: scale(0.95);
+  background-color: #3d2511; /* קצת יותר כהה בלחיצה */
+}

@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# build output
+client/build/
+
+# sqlite local db
+server/*.db
+
+# logs / backups
+*.log
+*.bak*
+backup_*/
+server/*.patch
+
+# local reports
+_report/

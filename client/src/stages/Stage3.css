@@ -1,0 +1,41 @@
+/* Stage3.css - THE 2026 LAVA CORE */
+/* ... כל מה שהיה לך קודם נשאר אותו דבר ... */
+
+/* === תוספת חדשה: כפתורי שליטה (Lava Core Theme) === */
+.stage3-theme .controls-layout {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.stage3-theme .control-row {
+  display: flex;
+  gap: 15px;
+}
+
+.stage3-theme .control-btn {
+  width: 60px;
+  height: 60px;
+  background: rgba(30, 0, 0, 0.9); /* שחור-אדום עמוק */
+  color: #ff4500;                  /* כתום ניאון */
+  border: 2px solid #ff4500;       /* מסגרת זוהרת */
+  border-radius: 12px;
+  font-size: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  touch-action: manipulation;      /* מונע זום בטלפון */
+  box-shadow: 0 0 15px rgba(255, 69, 0, 0.4); /* הילה כתומה */
+  transition: all 0.2s ease;
+}
+
+.stage3-theme .control-btn:active {
+  transform: scale(0.95);
+  background: #ff4500; /* נדלק בכתום כשלוחצים */
+  color: #000;
+  box-shadow: 0 0 30px rgba(255, 69, 0, 0.8); /* פיצוץ אור */
+}
