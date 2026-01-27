@@ -2,7 +2,7 @@
 
 A full-stack maze game with 3 stages and a Hall of Fame leaderboard.
 Each stage measures the player's completion time, sends the result to the backend,
-and the server stores only the best (fastest) record per stage.
+and the server stores the Top 3 fastest records per stage.
 
 ---
 
@@ -74,17 +74,18 @@ Response:
 ```
 
 ### `GET /api/records`
-Returns the leaderboard (one row per stage), sorted by stage.
+Returns the leaderboard (up to 3 rows per stage), sorted by stage and time.
 Response example:
 ```json
 [
   { "stage": 1, "name": "Ibrahim", "time": 12.34 },
-  { "stage": 2, "name": "Someone", "time": 18.21 }
+  { "stage": 1, "name": "Omer", "time": 14.12 },
+  { "stage": 1, "name": "Aviv", "time": 15.90 }
 ]
 ```
 
 ### `POST /api/score`
-Updates the best record for a stage (only if the new time is faster).
+Updates records for a stage (keeps only the Top 3 fastest times).
 Request body:
 ```json
 { "stage": 1, "name": "Ibrahim", "time": 12.34 }
@@ -98,7 +99,7 @@ Validation rules:
 
 ## Database
 SQLite file: `server/maze_records.db`  
-Table: `records (stage INTEGER PRIMARY KEY, name TEXT NOT NULL, time REAL NOT NULL)`
+Table: `records (id INTEGER PRIMARY KEY AUTOINCREMENT, stage INTEGER, name TEXT, time REAL, created_at INTEGER)`
 
 ---
 

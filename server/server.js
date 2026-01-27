@@ -2,7 +2,7 @@
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
-const db = require("./db");
+const { db, ready } = require("./db");
 
 const app = express();
 
@@ -92,53 +92,53 @@ app.get("/healthc", (req, res) => {
   res.json({ ok: true });
 });
 
-// Update/Create World Record
+// Update/Create Record (keep top 3 per stage)
 app.post("/api/score", (req, res) => {
   const { stage, name, time } = req.body;
 
-  db.get("SELECT name, time FROM records WHERE stage = ?", [stage], (err, row) => {
-    if (err) return res.status(500).json({ error: err.message });
+  db.run(
+    "INSERT INTO records (stage, name, time, created_at) VALUES (?, ?, ?, ?)",
+    [stage, name, time, Date.now()],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      const insertedId = this.lastID;
 
-    if (!row) {
       db.run(
-        "INSERT INTO records (stage, name, time) VALUES (?, ?, ?)",
-        [stage, name, time],
+        "DELETE FROM records WHERE stage = ? AND id NOT IN (SELECT id FROM records WHERE stage = ? ORDER BY time ASC, created_at ASC LIMIT 3)",
+        [stage, stage],
         (err2) => {
           if (err2) return res.status(500).json({ error: err2.message });
-          return res.json({ updated: true, reason: "first_record", message: "World Record set!" });
-        }
-      );
-      return;
-    }
 
-    if (time < row.time) {
-      db.run(
-        "UPDATE records SET name = ?, time = ? WHERE stage = ?",
-        [name, time, stage],
-        (err3) => {
-          if (err3) return res.status(500).json({ error: err3.message });
-          return res.json({
-            updated: true,
-            reason: "new_world_record",
-            message: `New World Record! You beat ${row.name}`,
-          });
+          db.all(
+            "SELECT id, name, time FROM records WHERE stage = ? ORDER BY time ASC, created_at ASC LIMIT 3",
+            [stage],
+            (err3, rows) => {
+              if (err3) return res.status(500).json({ error: err3.message });
+              const inTop3 = rows.some((r) => r.id === insertedId);
+              return res.json({
+                updated: inTop3,
+                reason: inTop3 ? "top3" : "not_in_top3",
+                message: inTop3
+                  ? "New record stored in Top 3"
+                  : "Time was not fast enough for Top 3",
+              });
+            }
+          );
         }
       );
-    } else {
-      return res.json({
-        updated: false,
-        reason: "not_better",
-        message: `Current record is ${row.time}s by ${row.name}`,
-      });
     }
-  });
+  );
 });
 
 app.get("/api/records", (req, res) => {
-  db.all("SELECT stage, name, time FROM records ORDER BY stage ASC", [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
+  db.all(
+    "SELECT stage, name, time FROM records ORDER BY stage ASC, time ASC, created_at ASC",
+    [],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    }
+  );
 });
 
 /* ✅ ADDED #2: API 404 JSON (must be before React build + before app.get('*') ) */
@@ -168,4 +168,11 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, "0.0.0.0", () => console.log("Server running on", PORT));
+ready
+  .then(() => {
+    app.listen(PORT, "0.0.0.0", () => console.log("Server running on", PORT));
+  })
+  .catch((err) => {
+    console.error("DB init failed:", err);
+    process.exit(1);
+  });

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Fragment } from "react";
 import { buildApiUrl } from "./api";
 
 function Leaderboard() {
@@ -26,15 +26,28 @@ function Leaderboard() {
       <table className="leaderboard-table">
         <tbody>
           {[1, 2, 3].map((stage) => {
-            const r = records.find((x) => Number(x.stage) === stage);
+            const stageRecords = records
+              .filter((x) => Number(x.stage) === stage)
+              .sort((a, b) => Number(a.time) - Number(b.time))
+              .slice(0, 3);
+
             return (
-              <tr key={stage}>
-                <td style={{ fontWeight: "bold" }}>Level {stage}</td>
-                <td>{r?.name || "---"}</td>
-                <td style={{ color: "#084320ff", fontWeight: "bold" }}>
-                  {r?.time !== undefined ? `${Number(r.time).toFixed(2)}s` : "---"}
-                </td>
-              </tr>
+              <Fragment key={stage}>
+                {[0, 1, 2].map((index) => {
+                  const r = stageRecords[index];
+                  return (
+                    <tr key={`${stage}-${index}`}>
+                      <td style={{ fontWeight: "bold" }}>
+                        Level {stage} #{index + 1}
+                      </td>
+                      <td>{r?.name || "---"}</td>
+                      <td style={{ color: "#084320ff", fontWeight: "bold" }}>
+                        {r?.time !== undefined ? `${Number(r.time).toFixed(2)}s` : "---"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </Fragment>
             );
           })}
         </tbody>
