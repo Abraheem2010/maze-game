@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Maze1 from './Maze1';
+import { buildApiUrl } from '../api';
 import './Stages.css';
 import './Stage1.css';
-
-const API = process.env.REACT_APP_API_URL || "";
 
 function Stage1() {
   const navigate = useNavigate();
@@ -31,7 +30,6 @@ function Stage1() {
       return;
     }
 
-    // שמירה של השם כדי שגם stages הבאים והשרת יקבלו אותו אוטומטית
     try { localStorage.setItem("playerName", trimmed); } catch (e) {}
 
     setCountdown(3);
@@ -44,21 +42,17 @@ function Stage1() {
         ? finalTime
         : 0;
 
-    // מעדיפים את השם מה-state, ואם אין אז מה-localStorage
     const name = (playerName || localStorage.getItem("playerName") || "player").trim();
-
     const payload = { stage: 1, name, time };
 
-    // mark leaderboard dirty
     try { localStorage.setItem("records_dirty", String(Date.now())); } catch (e) {}
 
-    // save in background (Smart Save)
     try {
       if (navigator.sendBeacon) {
         const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
-        navigator.sendBeacon(`${API}/api/score`, blob);
+        navigator.sendBeacon(buildApiUrl("/api/score"), blob);
       } else {
-        fetch(`${API}/api/score`, {
+        fetch(buildApiUrl("/api/score"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -67,7 +61,6 @@ function Stage1() {
       }
     } catch (e) {}
 
-    // instant next stage
     navigate("/stage2", { state: { playerName: name } });
   };
 
@@ -112,7 +105,6 @@ function Stage1() {
 
       {gameState === 'PLAYING' && (
         <div className="game-active">
-           {/* שים לב: אנחנו מניחים שהקומפוננטה Maze1 נמצאת באותה תיקייה */}
           <Maze1 onWin={handleWin} />
         </div>
       )}

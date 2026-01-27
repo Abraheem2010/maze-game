@@ -1,43 +1,89 @@
-﻿# Maze Game — Full-Stack Web App (React + Express + SQLite)
+# Maze Game - Full-Stack Web App (React + Express + SQLite)
 
-A full-stack maze game with **3 stages** and a **Hall of Fame** leaderboard.  
-Each stage measures the player's completion time, sends the result to the backend, and the server stores **only the best (fastest) record per stage**.
+A full-stack maze game with 3 stages and a Hall of Fame leaderboard.
+Each stage measures the player's completion time, sends the result to the backend,
+and the server stores only the best (fastest) record per stage.
 
 ---
 
 ## Live Demo (Render)
-- App (UI): https://maze-game-an6s.onrender.com
-- API (records): https://maze-game-an6s.onrender.com/api/records
+- https://maze-game-an6s.onrender.com (UI + API under `/api`)
 
 ---
 
-## What the App Does
-1. The Home page shows **Stage 1–3** and the **Hall of Fame** table.
-2. When a player finishes a stage:
-   - the timer stops
-   - the client sends a score to the server
-   - the server updates the leaderboard **only if the new time is better**
-3. The Hall of Fame displays the current best record per stage.
+## Requirements Checklist
+- Express server with a DB (SQLite)
+- Frontend + backend
+- At least 2 screens (Home + Stage 1-3)
+- Non-DOM logic on server (validation + best-record rule)
 
 ---
 
-## Leaderboard Rule (Best Record Only)
-- The database keeps **one record per stage**.
-- A new score replaces the existing record **only when the time is smaller** (faster).
-- Otherwise, the record stays unchanged.
+## Chosen Submission Option
+Option 3: Express server on Render + a separate static React site on Render.
 
 ---
 
-## Tech Stack
-- **Frontend:** React
-- **Backend:** Node.js + Express
-- **Database:** SQLite (file-based)
+## Authors
+- ibraheem hassda
+- omer bendr
+- aviv hod
+
+---
+
+## Project Structure
+- client/ - React frontend
+- server/ - Express API + SQLite DB
+
+---
+
+## Local Setup
+Prerequisites: Node.js 18+ and npm
+
+### Server
+```bash
+cd server
+npm install
+npm start
+```
+
+### Client
+```bash
+cd client
+npm install
+npm start
+```
+
+The client runs on http://localhost:3000 and proxies API calls to the server.
+
+---
+
+## Environment Variables
+Set this only if the client is deployed separately:
+```
+REACT_APP_API_URL=https://your-server.onrender.com
+```
+If not set, the client uses the same origin and `/api/*` routes.
 
 ---
 
 ## API Endpoints
-Base URL (local): `http://localhost:3000`  
-Base URL (Render): `https://maze-game-an6s.onrender.com`
+Base URL (local): http://localhost:3000
+Base URL (Render): same as the app link above
+
+### `GET /api/ping`
+Health check.
+Response:
+```json
+{ "ok": true, "ts": 1700000000000 }
+```
+
+### `GET /healthc`
+Lightweight health check.
+Response:
+```json
+{ "ok": true }
+```
 
 ### `GET /api/records`
 Returns the leaderboard (one row per stage), sorted by stage.
@@ -47,3 +93,42 @@ Response example:
   { "stage": 1, "name": "Ibrahim", "time": 12.34 },
   { "stage": 2, "name": "Someone", "time": 18.21 }
 ]
+```
+
+### `POST /api/score`
+Updates the best record for a stage (only if the new time is faster).
+Request body:
+```json
+{ "stage": 1, "name": "Ibrahim", "time": 12.34 }
+```
+Validation rules:
+- `stage` must be 1-3
+- `name` must be 2-32 characters
+- `time` must be a positive number
+
+---
+
+## Database
+SQLite file: `server/maze_records.db`
+Table: `records (stage INTEGER PRIMARY KEY, name TEXT NOT NULL, time REAL NOT NULL)`
+
+---
+
+## QA (Optional)
+From the `server/` folder:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\qa.ps1
+```
+
+---
+
+## Deployment (Render)
+Single service (Express + React build):
+1. Build the client: `cd client && npm run build`
+2. Ensure the build output is in `client/build`
+3. Start the server with `npm start` from the `server/` folder
+
+Separate services (client + server):
+- Deploy the server as an Express service
+- Deploy the client as a static site
+- Set `REACT_APP_API_URL` on the client to the server URL

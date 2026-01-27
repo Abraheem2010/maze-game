@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Maze3 from './Maze3';
+import { buildApiUrl } from '../api';
 import './Stages.css';
 import './Stage3.css';
-
-const API = process.env.REACT_APP_API_URL || "";
 
 function Stage3() {
   const navigate = useNavigate();
@@ -15,10 +14,9 @@ function Stage3() {
   const [showWinPopup, setShowWinPopup] = useState(false);
   const [finalTime, setFinalTime] = useState(0);
 
-  // טעינת שם
   useEffect(() => {
-     const savedName = localStorage.getItem("playerName");
-     if (savedName) setPlayerName(savedName);
+    const savedName = localStorage.getItem("playerName");
+    if (savedName) setPlayerName(savedName);
   }, []);
 
   useEffect(() => {
@@ -53,7 +51,6 @@ function Stage3() {
     const name = (playerName || localStorage.getItem("playerName") || "player").trim();
     const payload = { stage: 3, name, time };
 
-    // פופאפ ניצחון
     setFinalTime(time);
     setShowWinPopup(true);
 
@@ -62,9 +59,9 @@ function Stage3() {
     try {
       if (navigator.sendBeacon) {
         const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
-        navigator.sendBeacon(`${API}/api/score`, blob);
+        navigator.sendBeacon(buildApiUrl("/api/score"), blob);
       } else {
-        fetch(`${API}/api/score`, {
+        fetch(buildApiUrl("/api/score"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -73,7 +70,6 @@ function Stage3() {
       }
     } catch (e) {}
 
-    // חוזרים לבית אחרי 3 שניות (תן לו להנות מהניצחון)
     setTimeout(() => {
       navigate("/", { state: { playerName: name } });
     }, 3000);
@@ -145,7 +141,7 @@ function Stage3() {
               color: 'white'
             }}
           >
-            <h2 style={{ color: '#ff4500', margin: '0 0 10px 0' }}>🔥 VICTORY!</h2>
+            <h2 style={{ color: '#ff4500', margin: '0 0 10px 0' }}>VICTORY!</h2>
             <p style={{ fontSize: '1.2rem', margin: '10px 0' }}>
               You made it in <br />
               <span style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{finalTime}</span> seconds!

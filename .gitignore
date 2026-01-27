@@ -1,25 +1,9 @@
-node_modules
-# Local DB
-server/maze_records.db
-
-# ---- generated / local ----
+# dependencies
 node_modules/
 client/node_modules/
 server/node_modules/
-client/build/
 
-# sqlite local db
-server/*.db
-
-# logs / backups
-*.log
-*.bak*
-backup_*/
-server/*.patch
-# ---- generated / local ----
-node_modules/
-client/node_modules/
-server/node_modules/
+# build output
 client/build/
 
 # sqlite local db
@@ -33,8 +17,3 @@ server/*.patch
 
 # local reports
 _report/
-
-
-# local reports
-_report/
-

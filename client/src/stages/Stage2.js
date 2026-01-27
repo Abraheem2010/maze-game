@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Maze2 from './Maze2';
+import { buildApiUrl } from '../api';
 import './Stages.css';
 import './Stage2.css';
 
-const API = process.env.REACT_APP_API_URL || "";
-
 function Stage2() {
   const navigate = useNavigate();
-  const [gameState, setGameState] = useState('INPUT'); 
+  const [gameState, setGameState] = useState('INPUT');
   const [playerName, setPlayerName] = useState('');
   const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
-     const savedName = localStorage.getItem("playerName");
-     if (savedName) setPlayerName(savedName);
+    const savedName = localStorage.getItem("playerName");
+    if (savedName) setPlayerName(savedName);
   }, []);
 
   useEffect(() => {
@@ -44,9 +43,9 @@ function Stage2() {
     try {
       if (navigator.sendBeacon) {
         const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
-        navigator.sendBeacon(`${API}/api/score`, blob);
+        navigator.sendBeacon(buildApiUrl("/api/score"), blob);
       } else {
-        fetch(`${API}/api/score`, {
+        fetch(buildApiUrl("/api/score"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -75,8 +74,7 @@ function Stage2() {
         </div>
       )}
       {gameState === 'COUNTDOWN' && <div className="countdown-overlay">{countdown}</div>}
-      
-      {/* הנה התיקון הקריטי */}
+
       {gameState === 'PLAYING' && (
         <div className="game-active">
           <Maze2 onWin={handleWin} playerName={playerName} />

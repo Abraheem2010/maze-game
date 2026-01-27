@@ -1,8 +1,8 @@
 ﻿const express = require("express");
-const sqlite3 = require("sqlite3").verbose();
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
+const db = require("./db");
 
 const app = express();
 
@@ -77,13 +77,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// DB Setup
-const dbPath = path.join(__dirname, "maze_records.db");
-const db = new sqlite3.Database(dbPath);
-
-db.serialize(() => {
-  db.run("CREATE TABLE IF NOT EXISTS records (stage INTEGER PRIMARY KEY, name TEXT NOT NULL, time REAL NOT NULL)");
-});
+// DB Setup (initialized in db.js)
 
 /* =======================
    API ROUTES
