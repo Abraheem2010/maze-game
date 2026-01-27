@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Maze2 from './Maze2';
-import { buildApiUrl } from '../api';
+import { postScore } from '../api';
 import './Stages.css';
 import './Stage2.css';
 
@@ -40,19 +40,7 @@ function Stage2() {
     const name = (playerName || localStorage.getItem("playerName") || "player").trim();
     const payload = { stage: 2, name, time };
 
-    try {
-      if (navigator.sendBeacon) {
-        const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
-        navigator.sendBeacon(buildApiUrl("/api/score"), blob);
-      } else {
-        fetch(buildApiUrl("/api/score"), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-          keepalive: true,
-        }).catch(() => {});
-      }
-    } catch (e) {}
+    postScore(payload);
 
     navigate("/stage3", { state: { playerName: name } });
   };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Maze3 from './Maze3';
-import { buildApiUrl } from '../api';
+import { postScore } from '../api';
 import './Stages.css';
 import './Stage3.css';
 
@@ -56,19 +56,7 @@ function Stage3() {
 
     try { localStorage.setItem("records_dirty", String(Date.now())); } catch (e) {}
 
-    try {
-      if (navigator.sendBeacon) {
-        const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
-        navigator.sendBeacon(buildApiUrl("/api/score"), blob);
-      } else {
-        fetch(buildApiUrl("/api/score"), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-          keepalive: true,
-        }).catch(() => {});
-      }
-    } catch (e) {}
+    postScore(payload);
 
     setTimeout(() => {
       navigate("/", { state: { playerName: name } });
