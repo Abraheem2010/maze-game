@@ -12,13 +12,6 @@ and the server stores only the best (fastest) record per stage.
 
 ---
 
-## Authors
-- ibraheem hassda
-- omer bendr
-- aviv hod
-
----
-
 ## Project Structure
 - client/ - React frontend
 - server/ - Express API + SQLite DB
@@ -100,24 +93,3 @@ Validation rules:
 ## Database
 SQLite file: `server/maze_records.db`  
 Table: `records (stage INTEGER PRIMARY KEY, name TEXT NOT NULL, time REAL NOT NULL)`
-
----
-
-## Deployment (Render)
-Two services (Option 3):
-- Server (Web Service)
-  - Root Directory: `server`
-  - Build Command: `npm install`
-  - Start Command: `npm start`
-- Client (Static Site)
-  - Root Directory: `client`
-  - Build Command: `npm install && npm run build`
-  - Publish Directory: `build`
-  - Env Var: `REACT_APP_API_URL=https://maze-game-1-hmxj.onrender.com`
-
-Single service (Express serves React build):
-1. Build the client: `cd client && npm run build`
-2. Ensure the build output is in `client/build`
-3. Start the server with `npm start` from the `server/` folder
-
-If you deploy the client separately, set `REACT_APP_API_URL` to the server URL.
