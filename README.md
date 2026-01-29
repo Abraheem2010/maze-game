@@ -1,13 +1,13 @@
-# Maze Game - Full-Stack Web App (React + Express + SQLite)
+# Maze 3D - Full-Stack Web App (React + Express + SQLite)
 
-A full-stack maze game with 3 stages and a Hall of Fame leaderboard.
+A full-stack 3D (First-Person) maze game with 3 stages and a Hall of Fame leaderboard.
 Each stage measures the player's completion time, sends the result to the backend,
 and the server stores only the best (fastest) record per stage.
 
 ---
 
-## Live Demo (Render)
-- https://maze-game-an6s.onrender.com (UI + API under `/api`)
+## Live Demo
+- (Add your deployment link here)
 
 ---
 
@@ -20,7 +20,7 @@ and the server stores only the best (fastest) record per stage.
 ---
 
 ## Chosen Submission Option
-Option 3: Express server on Render + a separate static React site on Render.
+Option 3: React client + Express server.
 
 ---
 
@@ -46,6 +46,7 @@ cd server
 npm install
 npm start
 ```
+Server runs on http://localhost:3000
 
 ### Client
 ```bash
@@ -54,21 +55,51 @@ npm install
 npm start
 ```
 
-The client runs on http://localhost:3000 and proxies API calls to the server.
+If port 3000 is already taken by the server, React will start on http://localhost:3001 (recommended).
+The client proxies `/api/*` calls to the server via the `proxy` setting in `client/package.json`.
+
+### Production-like (single service locally)
+```bash
+cd client
+npm run build
+cd ..\\server
+npm start
+```
+Then open http://localhost:3000
 
 ---
 
 ## Environment Variables
 Set this only if the client is deployed separately:
 ```
-REACT_APP_API_URL=https://your-server.onrender.com
+REACT_APP_API_URL=https://your-server.example.com
 ```
 If not set, the client uses the same origin and `/api/*` routes.
 
 ---
 
+## Controls (3D FPS)
+- Click the game to start (Pointer Lock)
+- Move: WASD or Arrow keys
+- Look around: Mouse
+
+---
+
+## Multiplayer (Optional)
+- Up to 3 players in the same `Room`
+- Voice chat (WebRTC) + text chat
+- Use the Mic button in the in-game panel to mute/unmute
+
+---
+
+## Robot Head Image
+On the Home screen you can upload an image.
+It appears on the robot head inside the 3D maze (and is shared with other players in the same room).
+
+---
+
 ## API Endpoints
-Base URL (local): http://localhost:3000
+Base URL (local server): http://localhost:3000
 Base URL (Render): same as the app link above
 
 ### `GET /api/ping`
@@ -122,13 +153,7 @@ powershell -ExecutionPolicy Bypass -File .\qa.ps1
 
 ---
 
-## Deployment (Render)
-Single service (Express + React build):
-1. Build the client: `cd client && npm run build`
-2. Ensure the build output is in `client/build`
-3. Start the server with `npm start` from the `server/` folder
-
-Separate services (client + server):
-- Deploy the server as an Express service
-- Deploy the client as a static site
-- Set `REACT_APP_API_URL` on the client to the server URL
+## Deployment (Optional)
+This project can run as a single service:
+1. `cd client && npm run build`
+2. Start the server from `server/` with `npm start`

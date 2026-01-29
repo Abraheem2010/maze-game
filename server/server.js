@@ -1,7 +1,9 @@
-﻿const express = require("express");
+const express = require("express");
 const cors = require("cors");
+const http = require("http");
 const path = require("path");
 const fs = require("fs");
+const { WebSocketServer } = require("ws");
 const db = require("./db");
 
 const app = express();
@@ -87,7 +89,6 @@ app.get("/api/ping", (req, res) => {
   res.json({ ok: true, ts: Date.now() });
 });
 
-/* ✅ ADDED #1: /healthc */
 app.get("/healthc", (req, res) => {
   res.json({ ok: true });
 });
@@ -141,9 +142,138 @@ app.get("/api/records", (req, res) => {
   });
 });
 
-/* ✅ ADDED #2: API 404 JSON (must be before React build + before app.get('*') ) */
+/* API 404 JSON */
 app.use("/api", (req, res) => {
   res.status(404).json({ error: "API route not found" });
+});
+
+/* =======================
+   WEBSOCKET (CHAT + VOICE SIGNALING)
+======================= */
+const rooms = new Map();
+
+function getRoom(roomId) {
+  if (!rooms.has(roomId)) {
+    rooms.set(roomId, { clients: new Map() });
+  }
+  return rooms.get(roomId);
+}
+
+function sendJson(ws, payload) {
+  if (ws.readyState === 1) {
+    ws.send(JSON.stringify(payload));
+  }
+}
+
+function broadcast(room, payload, exceptId = null) {
+  room.clients.forEach((client, id) => {
+    if (exceptId && id === exceptId) return;
+    sendJson(client.ws, payload);
+  });
+}
+
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
+
+wss.on("connection", (ws) => {
+  const client = { id: null, roomId: null, name: null, avatar: null, stage: null, ws };
+
+  ws.on("message", (raw) => {
+    let msg;
+    try {
+      msg = JSON.parse(raw.toString());
+    } catch {
+      return;
+    }
+
+    if (msg.type === "join") {
+      const roomId = String(msg.room || "maze");
+      const name = String(msg.name || "Player").slice(0, 32);
+      const avatar = typeof msg.avatar === "string" ? msg.avatar : "";
+      const stage = Number.isFinite(msg.stage) ? msg.stage : null;
+
+      const room = getRoom(roomId);
+      if (room.clients.size >= 3) {
+        sendJson(ws, { type: "room-full" });
+        ws.close();
+        return;
+      }
+
+      client.id = Math.random().toString(36).slice(2, 10);
+      client.roomId = roomId;
+      client.name = name;
+      client.avatar = avatar;
+      client.stage = stage;
+
+      room.clients.set(client.id, client);
+
+      const peers = Array.from(room.clients.values())
+        .filter((c) => c.id !== client.id)
+        .map((c) => ({ id: c.id, name: c.name, avatar: c.avatar, stage: c.stage }));
+
+      sendJson(ws, { type: "welcome", id: client.id, peers });
+      broadcast(room, { type: "peer-joined", peer: { id: client.id, name, avatar, stage } }, client.id);
+      return;
+    }
+
+    if (!client.id || !client.roomId) return;
+    const room = getRoom(client.roomId);
+
+    if (msg.type === "signal") {
+      const targetId = msg.to;
+      const target = room.clients.get(targetId);
+      if (target) {
+        sendJson(target.ws, { type: "signal", from: client.id, signal: msg.signal });
+      }
+      return;
+    }
+
+    if (msg.type === "chat") {
+      const text = String(msg.text || "").slice(0, 500);
+      if (!text) return;
+      broadcast(room, {
+        type: "chat",
+        id: client.id,
+        name: client.name,
+        text,
+        ts: Date.now(),
+      });
+      return;
+    }
+
+    if (msg.type === "position") {
+      const pos = msg.pos || {};
+      const stage = Number.isFinite(msg.stage) ? msg.stage : client.stage;
+      client.stage = stage;
+      broadcast(room, { type: "position", id: client.id, pos, stage }, client.id);
+      return;
+    }
+
+    if (msg.type === "update") {
+      client.name = String(msg.name || client.name || "Player").slice(0, 32);
+      if (typeof msg.avatar === "string") client.avatar = msg.avatar;
+      if (Number.isFinite(msg.stage)) client.stage = msg.stage;
+      broadcast(
+        room,
+        {
+          type: "peer-updated",
+          peer: { id: client.id, name: client.name, avatar: client.avatar, stage: client.stage },
+        },
+        client.id
+      );
+    }
+  });
+
+  ws.on("close", () => {
+    if (!client.id || !client.roomId) return;
+    const room = rooms.get(client.roomId);
+    if (!room) return;
+    room.clients.delete(client.id);
+    broadcast(room, { type: "peer-left", id: client.id });
+    if (room.clients.size === 0) {
+      rooms.delete(client.roomId);
+    }
+  });
 });
 
 /* =======================
@@ -167,5 +297,5 @@ app.use((err, req, res, next) => {
   res.status(status).json({ error: status === 500 ? "Server error" : err.message });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, "0.0.0.0", () => console.log("Server running on", PORT));
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, "0.0.0.0", () => console.log("Server running on", PORT));

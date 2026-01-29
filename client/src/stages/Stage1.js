@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Maze1 from './Maze1';
 import { buildApiUrl } from '../api';
+import { connectToRoom } from '../multiplayer';
+import MultiplayerPanel from '../MultiplayerPanel';
 import './Stages.css';
 import './Stage1.css';
 
@@ -10,6 +12,11 @@ function Stage1() {
   const [gameState, setGameState] = useState('INPUT'); // INPUT | COUNTDOWN | PLAYING
   const [playerName, setPlayerName] = useState('');
   const [countdown, setCountdown] = useState(3);
+
+  useEffect(() => {
+    const savedName = localStorage.getItem("playerName");
+    if (savedName) setPlayerName(savedName);
+  }, []);
 
   useEffect(() => {
     if (gameState !== 'COUNTDOWN') return;
@@ -31,6 +38,9 @@ function Stage1() {
     }
 
     try { localStorage.setItem("playerName", trimmed); } catch (e) {}
+    const roomId = localStorage.getItem("roomId") || "maze";
+    const avatar = localStorage.getItem("robotAvatarUrl") || "";
+    connectToRoom({ name: trimmed, room: roomId, avatar, stage: 1 });
 
     setCountdown(3);
     setGameState('COUNTDOWN');
@@ -106,6 +116,7 @@ function Stage1() {
       {gameState === 'PLAYING' && (
         <div className="game-active">
           <Maze1 onWin={handleWin} />
+          <MultiplayerPanel />
         </div>
       )}
     </div>
